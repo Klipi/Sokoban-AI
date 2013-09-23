@@ -1,26 +1,46 @@
 #include <iostream>
 #include "sokoban.hpp"
 
-std::vector<State> possibleSteps(std::vector<string> map, State current) {
-	// Find possible steps and put into vector. Johan
-	std::vector<State> possiblemoves;
-        int x = current.player.x;
-        int y = current.player.y;
+std::vector<State> possibleSteps(std::vector<std::string> map, State *current) {
+        // Find possible steps and put into vector. Johan
+        std::vector<State> possiblemoves;
+        int x = current->player.x;
+        int y = current->player.y;
         int dx[4] = {1, -1, 0, 0};
         int dy[4] = {0, 0, 1, -1};
         char directions[4] = {'R','L','U','D'};
         char antidirections[4] = {'L','R','D','U'};
         State childstate;
         for(int i=0;i<3;i++){
-        	// check if we move to the previous state
-        	if(current.direction == antidirection[i] && current.parent.boxes == current.boxes)
-        		void;
-        	
-       		// check if move is possible
-                else if(map[x+dx[i]][y+dy[i]] == ' ' || map[x+dx[i]][y+dy[i]] == '.'){
-                	childstate.player.x = x+dx[i];
+         // check if we move back to the previous state
+         	if(current->direction == antidirections[i]){
+                 	bool box_pushed = false;
+                        for(int j = 0; j<current->boxes.size();j++){
+                          	if(current->parent->boxes[j].x != current->boxes[j].x || 
+                          	   current->parent->boxes[j].y != current->boxes[j].y){
+                              		box_pushed = false;
+                                        break;
+                                }
+                        }
+                        if(box_pushed){
+                          	childstate.player.x = x+dx[i];
+                                childstate.player.y = y+dy[i];
+                                childstate.boxes = current->boxes;
+                                childstate.direction = directions[i];
+                                childstate.parent = current;
+                                possiblemoves.push_back(childstate);
+                        }
+                        else if(i==3)
+                           	break;
+                        else
+                            i++;
+           	}
+        
+        // check if move is possible
+                if(map[x+dx[i]][y+dy[i]] == ' ' || map[x+dx[i]][y+dy[i]] == '.'){
+                 childstate.player.x = x+dx[i];
                         childstate.player.y = y+dy[i];
-                        childstate.boxes = current.boxes;
+                        childstate.boxes = current->boxes;
                         childstate.direction = directions[i];
                         childstate.parent = current;
                         possiblemoves.push_back(childstate);
@@ -28,34 +48,35 @@ std::vector<State> possibleSteps(std::vector<string> map, State current) {
                            
                 // check if push is possible
                 else if(map[x+dx[i]][y+dy[i]] != '#'){
-                	int box_number; // The box that is being pushed
+                 int box_number; // The box that is being pushed
                         bool can_push = (map[x+2*dx[i]][y+2*dy[i]] == ' ' || map[x+2*dx[i]][y+2*dy[i]] == '.');
                         if(can_push){
-                         	for(int j=0;j<current.boxes.size();j++){
-                                       if((x+2*dx[i])==current.boxes[j].x && 
-                                          (y+2*dy[i])==current.boxes[j].y){
+                          for(int j=0;j<current->boxes.size();j++){
+                                       if((x+2*dx[i])==current->boxes[j].x &&
+                                          (y+2*dy[i])==current->boxes[j].y){
                                               can_push = false;
                                               break;
                                        }
-                                       else if((x+dx[i])==current.boxes[j].x && 
-                                               (y+dy[i])==current.boxes[j].y){
+                                       else if((x+dx[i])==current->boxes[j].x &&
+                                               (y+dy[i])==current->boxes[j].y){
                                               box_number = j;
                                        }
                                    }
                                }
                          if(can_push){
-                          	childstate.player.x = x+dx[i];
+                           childstate.player.x = x+dx[i];
                                 childstate.player.y = y+dy[i];
-                               	childstate.boxes = current.boxes;
+                                childstate.boxes = current->boxes;
                                 childstate.boxes[box_number].x = x+2*dx[i];
                                 childstate.boxes[box_number].y = y+2*dy[i];
                                 childstate.direction = directions[i];
-                        	childstate.parent = current;
+                         childstate.parent = current;
                                 possiblemoves.push_back(childstate);
                          }
                 }
                            
          }
+         return possiblemoves;
 };
 
 void parseBoard(std::vector<string> map, State root, std::vector<Point> &goal) {

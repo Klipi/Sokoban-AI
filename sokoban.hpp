@@ -7,21 +7,19 @@ struct Point {
 
 struct State {
     Point player;
-    std::vector<Point> boards;
+    std::vector<Point> boxes;
+    char direction;
+    State *parent;
 };
 
-struct Node {
-    // TODO: Johan
-};
+std::vector<State> possibleSteps(std::vector<string> map, State current);
 
-void possibleSteps(std::vector<string> map, Node current, std::vector<Node> &children);
-
-void parseBoard(std::std::vector<stri> map, Node root, std::vector<Point> &goal);
+void parseBoard(std::vector<string> map, State root, std::vector<Point> &goal);
 
 int hashState(State state);
 
-bool isGoal(std::vector<Point> goal, Node node);
+bool isGoal(std::vector<Point> goal, State state);
 
-Node findPathTo(Node start, Point goal);
+State findPathTo(State start, Point goal);
 
-string getPath(Node node);
+std::string getPath(State state);

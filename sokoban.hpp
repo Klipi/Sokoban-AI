@@ -12,7 +12,7 @@ struct State {
     State *parent;
 };
 
-std::vector<State> possibleSteps(std::vector<string> map, State current);
+std::vector<State> possibleSteps(std::vector<string> map, State *current);
 
 void parseBoard(std::vector<string> map, State root, std::vector<Point> &goal);
 
@@ -22,4 +22,4 @@ bool isGoal(std::vector<Point> goal, State state);
 
 State findPathTo(State start, Point goal);
 
-std::string getPath(State state);
+std::string getPath(State *state);

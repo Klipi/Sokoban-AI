@@ -36,6 +36,7 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 			new_box_pos.y = y+2*dy[i];
 
 			if(
+					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
 					(unsigned)(y+2*dy[i]) < map.size() && (unsigned)(x+2*dx[i]) < map[y+2*dy[i]].size() &&
 					map[y+2*dy[i]][x+2*dx[i]] != '#' &&
 			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
@@ -191,7 +192,7 @@ State findPathTo(State start, Point goal) {
 	return State();
 };
 
-// Sends the board to cout (used for debugging)
+// Sends the board to cerr (used for debugging)
 void showBoard(std::vector<std::string> clearBoard, State state) {
 	// PLayer position
 	clearBoard[state.player.y][state.player.x] = clearBoard[state.player.y][state.player.x] == '.' ? '+' : '@';
@@ -201,14 +202,27 @@ void showBoard(std::vector<std::string> clearBoard, State state) {
 		clearBoard[i->y][i->x] = clearBoard[i->y][i->x] == '.' ? '*' : '$';
 	}
 
-	// Send it to cout
+	// Send it to cerr
 	for (std::vector<string>::iterator row = clearBoard.begin(); row != clearBoard.end(); row++) {
-		std::cout << *row << std::endl;
+		std::cerr << *row << std::endl;
 	}
-	std::cout << std::endl;
+	std::cerr << std::endl;
 };
 
 int main(int argc, const char **argv) {
+	bool verbose = false;
+	for (int i = 1; i < argc; ++i)
+	{
+		std::string param(argv[i]);
+		if (param == "verbose" || param == "v")
+			verbose = true;
+		else
+		{
+			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
+			return -1;
+		}
+	}
+
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
 	std::vector<Point> goal = std::vector<Point>();
@@ -241,15 +255,10 @@ int main(int argc, const char **argv) {
 			}
 			if (std::find(explored.begin(),explored.end(),(*i)->state)==explored.end())
 			{
-				cout << getPath(*i) << endl;
-				showBoard(clearBoard, (*i)->state);
+				if (verbose) {
+					showBoard(clearBoard, (*i)->state);
+				}
 				frontier.push(*i);
-			} else
-			{
-
-				cout << "Not allowed" << endl;
-				cout << getPath(*i) << endl;
-				showBoard(clearBoard, (*i)->state);
 			}
 		}
 	}

@@ -17,25 +17,28 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 	int y = current->state.player.y;
 	int dx[4] = {1, -1, 0, 0};
 	int dy[4] = {0, 0, 1, -1};
-	char directions[4] = {'R','L','D','U'};
+	char directions[4] = {'D','U','R','L'};
 	Node* childstate = new Node();
 	Point new_pos;
 	
-	for(size_t i=0;i<3;i++){
-               
+	for(size_t i=0;i<3;i++)
+	{
 	        new_pos.x = x+dx[i];
 	        new_pos.y = y+dy[i];
 	
 		// check if push is possible
 		// Which box is pushed (if any)
-		std::vector<Point>::iterator pushed_box = std::find(current->state.boxes.begin(),current->state.boxes.end(),new_pos);
-		if(pushed_box!=current->state.boxes.end()){
+		std::vector<Point>::iterator pushed_box = std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos);
+		if (pushed_box!=current->state.boxes.end())
+		{
 			Point new_box_pos;
 			new_box_pos.x = x+2*dx[i];
 			new_box_pos.y = y+2*dy[i];
-				
-			if(map[x+2*dx[i]][y+2*dy[i]] != '#' && 
-	              	  (std::find(current->state.boxes.begin(),current->state.boxes.end(),new_box_pos)==current->state.boxes.end())){
+			if(
+					x+2*dx[i] < map.size() && y+2*dy[i] < map[x+2*dx[i]].size() &&
+					map[x+2*dx[i]][y+2*dy[i]] != '#' && 
+			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
+			{	
 				childstate->state.player = new_pos;
 				childstate->state.boxes = current->state.boxes;
 				childstate->state.boxes[std::distance(current->state.boxes.begin(),pushed_box)] = new_box_pos;
@@ -64,31 +67,35 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	// Filip
 	for (uint8_t i = 0; i<map.size();++i)
 	{
-		//std::cout<<board[i]<<std::endl;
-		uint8_t x;
+		int x;
 		int p=0;
-		while((x=map[i].find('$',p))<std::string::npos)
+
+		while((x=map[i].find('$',p)) < std::string::npos)
 		{
 			p=x+1;
 			root->state.boxes.push_back(Point(x,i));
 		}
 
-		while((x=map[i].find('.',p))<std::string::npos)
+		p = 0;
+		while((x=map[i].find('.',p)) < std::string::npos)
 		{
 			p=x+1;
 			goal.push_back(Point(x,i));
 		}
-
-		while((x=map[i].find('*',p))<std::string::npos)
+		
+		p = 0;
+		while((x=map[i].find('*',p)) < std::string::npos)
 		{
 			p=x+1;
 			goal.push_back(Point(x,i));
 			root->state.boxes.push_back(Point(x,i));
 		}
-
-		if((x=map[i].find('@'))<std::string::npos || (x=map[i].find('+'))<std::string::npos)
+	
+		if((x=map[i].find('@')) < std::string::npos || (x=map[i].find('+')) < std::string::npos)
 			root->state.player = Point(x,i);
 	}
+	// Sort the goal but don't think it will be needed
+	// std::sort(goal.begin(), goal.end());
 };
 
 // Hash state struct to a size_t. Olli
@@ -131,8 +138,17 @@ struct StateEqual {
 };
 
 bool isGoal(std::vector<Point> goal, State state) {
-	// Check if the state is goooooal
-	return false;
+	// Asume goal is sorted
+	std::sort(state.boxes.begin(), state.boxes.end());
+
+	for (size_t i = 0; i < state.boxes.size(); i++)
+	{
+		if (goal[i] != state.boxes[i])
+		{
+			return false;
+		}
+	}
+	return true;
 };
 
 std::string getPath(Node* node) {
@@ -146,6 +162,7 @@ std::string getPath(Node* node) {
 	return path;
 };
 
+// Not now lol
 State findPathTo(State start, Point goal) {
 	/* Find the path for the player to the goal point. Creates the child nodes
 	   and returning the last one if reached the goal TODO: Olli? */
@@ -169,6 +186,7 @@ int main(int argc, const char **argv) {
 	std::priority_queue<Node*> frontier = std::priority_queue<Node*>();
 	frontier.push(start);
 	std::list<State> explored = std::list<State>();
+
 	while(!frontier.empty())
 	{
 		Node* current = frontier.top();
@@ -190,7 +208,5 @@ int main(int argc, const char **argv) {
 		}
 	}
 
-	// Output answer
-	// std::cout << getPath(goalState) << std::endl;
 	return 0;
 }

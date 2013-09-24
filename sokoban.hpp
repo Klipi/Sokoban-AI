@@ -45,7 +45,7 @@ struct Node {
 
 std::vector<Node*> possibleSteps(std::vector<std::string> map, State *current);
 
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal);
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<std::string> &clearBoard);
 
 int hashState(State state);
 

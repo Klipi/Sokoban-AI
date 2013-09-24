@@ -18,32 +18,8 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 	int dx[4] = {1, -1, 0, 0};
 	int dy[4] = {0, 0, 1, -1};
 	char directions[4] = {'R','L','D','U'};
-	char antidirections[4] = {'L','R','U','D'};
 	Node* childstate = new Node();
 	for(size_t i=0;i<3;i++){
-		// check if we move back to the previous state
-		if(current->direction == antidirections[i]){
-			bool box_pushed = false;
-			for(size_t j = 0; j<current->state.boxes.size();j++){
-				if(current->parent->state.boxes[j].x != current->state.boxes[j].x ||
-						current->parent->state.boxes[j].y != current->state.boxes[j].y){
-					box_pushed = false;
-					break;
-				}
-			}
-			if(box_pushed){
-				childstate->state.player.x = x+dx[i];
-				childstate->state.player.y = y+dy[i];
-				childstate->state.boxes = current->state.boxes;
-				childstate->direction = directions[i];
-				childstate->parent = current;
-				possiblemoves.push_back(childstate);
-			}
-			else if(i==3)
-				break;
-			else
-				i++;
-		}
 
 		// check if move is possible
 		if(map[x+dx[i]][y+dy[i]] == ' ' || map[x+dx[i]][y+dy[i]] == '.'){

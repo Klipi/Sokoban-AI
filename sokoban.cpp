@@ -62,23 +62,23 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal) {
 	// Parse the board and save the current state into currentstate and all possible goal states in the vector
 	// Filip
-	for (uint8_t i = 0; i<map.size();++i)
+	for (uint8_t i = 1; i<map.size()-1;++i)
 	{
-		//std::cout<<board[i]<<std::endl;
-		uint8_t x;
+//		std::cout<<map[i]<<std::endl;
+		int x;
 		int p=0;
 		while((x=map[i].find('$',p))<std::string::npos)
 		{
 			p=x+1;
 			root->state.boxes.push_back(Point(x,i));
 		}
-
+		p=0;
 		while((x=map[i].find('.',p))<std::string::npos)
 		{
 			p=x+1;
 			goal.push_back(Point(x,i));
 		}
-
+		p=0;
 		while((x=map[i].find('*',p))<std::string::npos)
 		{
 			p=x+1;
@@ -89,6 +89,17 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		if((x=map[i].find('@'))<std::string::npos || (x=map[i].find('+'))<std::string::npos)
 			root->state.player = Point(x,i);
 	}
+//	std::cout<<"player: "<<root->state.player.x<<":"<<root->state.player.y<<std::endl;
+//	std::cout<<"boxes:"<<root->state.boxes.size()<<std::endl;
+//	for(int i = 0; i< root->state.boxes.size();++i)
+//	{
+//		std::cout<<root->state.boxes[i].x<<":"<<root->state.boxes[i].y<<std::endl;
+//	}
+//	std::cout<<"goals:"<<goal.size()<<std::endl;
+//	for(int i = 0; i< goal.size();++i)
+//	{
+//		std::cout<<goal[i].x<<":"<<goal[i].y<<std::endl;
+//	}
 };
 
 // Hash state struct to a size_t. Olli

@@ -35,6 +35,7 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 			new_box_pos.x = x+2*dx[i];
 			new_box_pos.y = y+2*dy[i];
 			if(
+					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
 					y+2*dy[i] < map.size() && x+2*dx[i] < map[y+2*dy[i]].size() &&
 					map[y+2*dy[i]][x+2*dx[i]] != '#' && 
 			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
@@ -49,7 +50,9 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 		}
 			
 		// check if move is possible
-		else if(map[y+dy[i]][x+dx[i]] != '#'){
+		else if(		y+dy[i] > 0 && x+dx[i] > 0 &&
+					y+dy[i] < map.size() && x+dx[i] < map[y+dy[i]].size() &&
+					map[y+dy[i]][x+dx[i]] != '#'){
 			childstate->state.player = new_pos;
 			childstate->state.boxes = current->state.boxes;
 			childstate->direction = directions[i];

@@ -17,8 +17,8 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 	int y = current->state.player.y;
 	int dx[4] = {1, -1, 0, 0};
 	int dy[4] = {0, 0, 1, -1};
-	char directions[4] = {'R','L','U','D'};
-	char antidirections[4] = {'L','R','D','U'};
+	char directions[4] = {'R','L','D','U'};
+	char antidirections[4] = {'L','R','U','D'};
 	Node* childstate = new Node();
 	for(size_t i=0;i<3;i++){
 		// check if we move back to the previous state

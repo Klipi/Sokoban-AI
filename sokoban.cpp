@@ -153,7 +153,7 @@ vector<Node*> getNextSteps(vector<string> map, Node *current) {
 	{
 		Point box = current->state.boxes[i];
 		vector<Point> newPoints = getMovableSides(box, map, current);
-		
+
 		// If none found, check if box on goal. TODO: otherwise check if box stuck, return empty (infeasible) if stuck.
 		if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end())
 		{
@@ -164,7 +164,7 @@ vector<Node*> getNextSteps(vector<string> map, Node *current) {
 	}
 	//cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
 
-	
+
 	foundPaths = findPaths(nextToBox, map, current);
 
 	//cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
@@ -272,7 +272,8 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		if((x=map[i].find('@')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
-			clearBoard[i][x] = map[i][x] == ' ';
+			map[i][x] == ' ';
+			clearBoard[i][x] = ' ';
 		}
 		else if((x=map[i].find('+')) < std::string::npos)
 		{

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-#include <sstream>
 #include <tr1/functional>
 #include <algorithm>
 #include <queue>
@@ -9,6 +8,65 @@
 #include "sokoban.hpp"
 
 using namespace std;
+
+// As below, but only checks for either left-right or up-down. Assumes a box at given Point.
+bool isBoxStuck(Point box, vector<string> map, Node *current, bool LRCheck) {
+	
+	Point point1, point2;
+
+	if (LRCheck)
+	{
+		point1 = Point(box.x - 1, box.y);
+		point2 = Point(box.x + 1, box.y);
+		
+	}
+	else
+	{
+		point1 = Point(box.x, box.y - 1);
+		point2 = Point(box.x, box.y + 1);
+	}
+
+	Point new_pos[2] = {point1, point2};
+
+	for (size_t i = 0; i < 2; i++)
+	{
+		// Wall?
+		if (map[(new_pos[i]).y][(new_pos[i]).x] == '#')
+			return true;
+
+		// Another box?
+		if (std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos[i]) != current->state.boxes.end())
+			return true;
+	}
+
+	return false;
+}
+
+// Checks if a box can still be moved. Useful for pruning the search tree.
+bool isBoxStuck(Point box, vector<string> map, Node *current) {
+	return (isBoxStuck(box, map, current, true) && isBoxStuck(box, map, current, false));
+}
+
+// Returns the coordinates from which the given box can be pushed.
+vector<Point> getMovableSides(Point box, vector<string> map, Node *current){
+	vector<Point> sides;
+
+	if (!isBoxStuck(box, map, current, true)){
+		sides.push_back(box.left());
+		sides.push_back(box.right());
+	}
+
+	if (!isBoxStuck(box, map, current, false)){
+		sides.push_back(box.up());
+		sides.push_back(box.down());
+	}
+
+	return sides;
+}
+
+std::vector<Node*> getNextSteps(std::vector<std::string> map, Node *current) {
+	return possibleSteps(map, current);
+}
 
 std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 	// Find possible steps and put into vector. Johan
@@ -202,46 +260,6 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 };
 
-// Hash state struct to a size_t. Olli
-struct StateHash {
- std::size_t operator()(const State& state) const
- {
- 	ostringstream coordinates;
-	coordinates << state.player.x << state.player.y;
-
-	for (size_t i = 0; i < state.boxes.size(); i++)
-	{
-		coordinates << state.boxes[i].x << state.boxes[i].y;
-	}
-	std::tr1::hash<string> stringHash;
-    return stringHash(coordinates.str());
- }
-};
-
-struct StateEqual {
-	bool operator()(const State& cFirst, const State& cSecond) const
-	{
-		State first (cFirst);
-		State second (cSecond);
-		// std::cerr << "player (" << (int)first.player.x << "," << (int)first.player.y << ") == (" << (int)second.player.x << "," << (int)second.player.y << ") " << std::endl;;
-		if (first.player != second.player)
-			return false;
-
-		for (size_t i = 0; i != first.boxes.size(); i++)
-		{
-			// std::cerr << "box (" << (int)first.boxes[i].x << "," << (int)first.boxes[i].y << ") == (" << (int)second.boxes[i].x << "," << (int)second.boxes[i].y << ") ";
-			if (first.boxes[i] != second.boxes[i])
-			{
-				// std::cerr << "Mismatch" << std::endl;
-				return false;
-			}
-			// std::cerr << "Match" << std::endl;
-		}
-
-	    return true;
-	}
-};
-
 // Nobody likes global variables but we need it to compare states in the priority queue
 std::vector<string> clearBoard;
 
@@ -347,7 +365,7 @@ int main(int argc, const char **argv) {
 		Node* current = frontier.top();
 		knownStates.insert({current->state, 1});
 		frontier.pop();
-		std::vector<Node*> children = possibleSteps(clearBoard,current);
+		std::vector<Node*> children = getNextSteps(clearBoard,current);
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
 			if(isGoal(goal,(*i)->state))

@@ -140,10 +140,10 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 void pushBoxes(vector<Node*>& nodes){
 	//cerr << "Start pushing." << endl;
 	unordered_map<int, char> directions;
-	directions[0] = 'U';
+	directions[0] = 'L';
 	directions[1] = 'R';
-	directions[2] = 'D';
-	directions[3] = 'L';
+	directions[2] = 'U';
+	directions[3] = 'D';
 
 	bool first = true;
 	size_t originalSize = nodes.size();
@@ -299,12 +299,14 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		if((x=map[i].find('@')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
+			map[i][x] = ' ';
 			clearBoard[i][x] = ' ';
 		}
 		else if((x=map[i].find('+')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
 			goal.push_back(Point(x,i));
+			map[i][x] = '.';
 			clearBoard[i][x] = '.';
 		}
 	}

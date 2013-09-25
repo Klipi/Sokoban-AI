@@ -25,7 +25,7 @@ struct NodeCompare
 {
 	bool operator()(const Node* a, const Node* b) const
 	{
-		return heuristic(a->state) < heuristic(b->state);
+		return heuristic(a->state) > heuristic(b->state);
 	}
 };
 

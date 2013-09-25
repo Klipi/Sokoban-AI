@@ -15,11 +15,11 @@ int heuristic(State state)
 	int value = 0;
 
 	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
-		if (find(goals.begin(), goals.end(), *i) != goals.end())
-		{
-			value -= 20;
-			continue;
-		}
+		//if (find(goals.begin(), goals.end(), *i) != goals.end())
+		//{
+		//	value -= 20;
+		//	continue;
+		//}
 		int minSoFar = 1000;
 		for (vector<Point>::iterator j = goals.begin(); j != goals.end(); ++j)
 		{

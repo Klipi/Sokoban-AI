@@ -430,7 +430,8 @@ std::string getPath(Node* node) {
 	std::string path;
 	Node *current = node;
 	while(current->parent != NULL){
-		path.insert(path.begin(),current->direction);
+		if (current->direction != 'X')
+			path.insert(path.begin(),current->direction);
 		current = current->parent;
 	}
 	return path;
@@ -557,6 +558,10 @@ int main(int argc, const char **argv) {
 	{
 		Node* current = frontier.top();
 		frontier.pop();
+		if (verbose) {
+			std::cerr << getPath(current) << std::endl;
+			showBoard(clearBoard, (current)->state);
+		}
 		//cerr << "Frontier has " << frontier.size() << " nodes." << endl;
 
 		//knownStates[current->state] = 1;
@@ -576,10 +581,6 @@ int main(int argc, const char **argv) {
 			if (addToHashMap(knownStates, (*i), 0))
 			{
 				//std::cerr << "New node found, printing..." << std::endl;
-				if (verbose) {
-					std::cerr << getPath(*i) << std::endl;
-					showBoard(clearBoard, (*i)->state);
-				}
 				frontier.push(*i);
 			}
 		}

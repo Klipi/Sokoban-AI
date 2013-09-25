@@ -16,7 +16,7 @@ class Node {
 		Node* getChild(char);
 		bool identifyDeadBox(Node*, Point);
 
-		Node(){};
+		Node():direction(' '),parent(NULL){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};
 };
 

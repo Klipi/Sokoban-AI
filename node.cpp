@@ -52,6 +52,10 @@ bool Node::isFreePoint(Point place){
 	return !(hasBoxIn(place) || hasWallIn(place) || clearBoard[place.y][place.x] == '?');
 }
 
+
+bool Node::identifyDeadBox(Node* node, Point box){
+	return false;
+}
 // Returns a node object, where the player has moved one step to dir.
 Node* Node::getChild(char dir){
 	Point position = state.player;
@@ -115,9 +119,15 @@ Node* Node::getChild(char dir){
 	if (pushed_box != state.boxes.end())
 		newBoxes[distance(state.boxes.begin(), pushed_box)] = position2;
 
-	
+
+
 	State newState (position, newBoxes);
 	Node* child = new Node(newState, dir, this);
+
+	if (identifyDeadBox(child, newBoxes[distance(state.boxes.begin(), pushed_box)]))
+	{
+		return new Node(state, 'X', this);
+	}
 
 	return child;
 }

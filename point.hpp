@@ -23,6 +23,10 @@ class Point {
         {
         	return !(*this == other);
         }
+        bool operator > (const Point& other) const
+        {
+            return !(*this < other || *this == other);
+        }
 
         Point():x(0),y(0){}
 

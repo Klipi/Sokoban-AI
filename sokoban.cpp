@@ -460,6 +460,66 @@ void showBoard(std::vector<std::string> clearBoard, State state) {
 	std::cerr << std::endl;
 };
 
+// Finds the lowest reachable position without moving boxes. Used to keep the hash table clean
+// (ie. player position is always the same unless something actually critical has happened)
+Node* findLowestPlayerPosition(Node* current){
+
+	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	Node* start = current;
+	Node* lowest = start;
+	knownStates.insert({start->state, 0});
+	//cerr << "Finding the common position, start: " << (int)lowest->state.player.x << "," << (int)lowest->state.player.y << endl;
+	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
+	frontier.push(start);
+
+	while(!frontier.empty())
+	{
+		Node* newNode = frontier.top();
+		frontier.pop();
+		//cerr << "Frontier has " << frontier.size() << " nodes." << endl;
+
+		knownStates[current->state] = 1;
+		//cerr << "Finding next nodes." << endl;
+		std::vector<Node*> children = possibleSteps(clearBoard, newNode, true);
+		//cerr << "Search over. Children found:  " << children.size() << endl;
+		//cerr << "Printing children" << endl;
+		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
+		{
+			if (knownStates.find((*i)->state) == knownStates.end())
+			{
+				knownStates.insert({(*i)->state, 0});
+				frontier.push(*i);
+
+				if(lowest->state.player > (*i)->state.player)
+				{
+					lowest = *i;
+					//cerr << "Found better: " << (int)lowest->state.player.x << "," << (int)lowest->state.player.y << endl;
+				}
+			}
+		}
+
+	}
+
+	return lowest;
+}
+
+// Returns true if a new element was added
+bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates, Node* node, int value){
+	Node* newNode = findLowestPlayerPosition(node);
+
+	if (knownStates.find(newNode->state) == knownStates.end())
+	{
+		knownStates.insert({newNode->state, value});
+		return true;
+	}
+	else
+	{
+		knownStates[newNode->state] = value;
+		return false;
+	}
+	
+}
+
 int main(int argc, const char **argv) {
 	bool verbose = false;
 	for (int i = 1; i < argc; ++i)
@@ -476,7 +536,7 @@ int main(int argc, const char **argv) {
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
-	knownStates.insert({start->state, 0});
+	
 
 	goals = std::vector<Point>();
 
@@ -488,6 +548,7 @@ int main(int argc, const char **argv) {
 
 	parseBoard(board, start, goals, clearBoard);
 	sort(goals.begin(), goals.end());
+	addToHashMap(knownStates, start, 0);
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
@@ -498,7 +559,7 @@ int main(int argc, const char **argv) {
 		frontier.pop();
 		//cerr << "Frontier has " << frontier.size() << " nodes." << endl;
 
-		knownStates[current->state] = 1;
+		//knownStates[current->state] = 1;
 		//cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
 		//cerr << "Search over. Children found:  " << children.size() << endl;
@@ -512,9 +573,8 @@ int main(int argc, const char **argv) {
 				return 0;
 			}
 
-			if (knownStates.find((*i)->state) == knownStates.end())
+			if (addToHashMap(knownStates, (*i), 0))
 			{
-				knownStates.insert({(*i)->state, 0});
 				//std::cerr << "New node found, printing..." << std::endl;
 				if (verbose) {
 					std::cerr << getPath(*i) << std::endl;

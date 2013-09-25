@@ -14,6 +14,7 @@ class Node {
 		bool hasWallIn(Point);
 		bool isFreePoint(Point);
 		Node* getChild(char);
+		bool identifyDeadBox(Node*, Point);
 
 		Node(){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};

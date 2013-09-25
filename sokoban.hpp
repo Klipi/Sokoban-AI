@@ -37,10 +37,6 @@ struct State {
         {
             return false;
         }
-        if (boxes.size() != other.boxes.size())
-        {
-            return false;
-        }
 
         for (size_t i = 0; i < boxes.size(); i++) {
             if (boxes[i] != other.boxes[i]) {

@@ -217,21 +217,46 @@ struct StateEqual {
 	{
 		State first (cFirst);
 		State second (cSecond);
-		std::sort(first.boxes.begin(), first.boxes.end());
-		std::sort(second.boxes.begin(), second.boxes.end());
-		if (first.boxes.size() != second.boxes.size())
-			return false;
-
+		// std::cerr << "player (" << (int)first.player.x << "," << (int)first.player.y << ") == (" << (int)second.player.x << "," << (int)second.player.y << ") " << std::endl;;
 		if (first.player != second.player)
 			return false;
 
 		for (size_t i = 0; i != first.boxes.size(); i++)
 		{
+			// std::cerr << "box (" << (int)first.boxes[i].x << "," << (int)first.boxes[i].y << ") == (" << (int)second.boxes[i].x << "," << (int)second.boxes[i].y << ") ";
 			if (first.boxes[i] != second.boxes[i])
+			{
+				// std::cerr << "Mismatch" << std::endl;
 				return false;
+			}
+			// std::cerr << "Match" << std::endl;
 		}
 
 	    return true;
+	}
+};
+
+// Nobody likes global variables but we need it to compare states in the priority queue
+std::vector<string> clearBoard;
+
+// Simple, counts how many boxes on goals
+int heuristic(State state)
+{
+	int value = 0;
+
+	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
+		value += clearBoard[i->y][i->x] == '.' ? 1 : 0;
+	}
+
+	return value;
+}
+
+
+struct NodeCompare
+{
+	bool operator()(const Node* a, const Node* b) const
+	{
+		return heuristic(a->state) < heuristic(b->state);
 	}
 };
 
@@ -300,23 +325,21 @@ int main(int argc, const char **argv) {
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
 	std::vector<Point> goal = std::vector<Point>();
-	std::list<State> explored = std::list<State>();
 
 	// Read the board
-	std::vector<std::string> board, clearBoard;
+	std::vector<std::string> board;
 	for (std::string line; std::getline(std::cin, line);)
 		board.push_back(line);
 
 	parseBoard(board, start, goal, clearBoard);
 
-	std::queue<Node*> frontier = std::queue<Node*>();
+	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
-	explored.push_back(start->state);
 
 	while(!frontier.empty())
 	{
-		Node* current = frontier.front();
-		explored.push_back(current->state);
+		Node* current = frontier.top();
+		knownStates.insert({current->state, 1});
 		frontier.pop();
 		std::vector<Node*> children = possibleSteps(clearBoard,current);
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -327,8 +350,10 @@ int main(int argc, const char **argv) {
 				std::cout << answer << std::endl;
 				return 0;
 			}
-			if (std::find(explored.begin(),explored.end(),(*i)->state)==explored.end())
+
+			if (knownStates.find((*i)->state) == knownStates.end())
 			{
+				// std::cerr << " that was cool" << std::endl;
 				if (verbose) {
 					std::cerr << getPath(*i) << std::endl;
 					showBoard(clearBoard, (*i)->state);

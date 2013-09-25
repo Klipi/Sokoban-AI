@@ -23,6 +23,9 @@ int heuristic(State state)
 
 // Returns true if there is a wall at given Point
 bool Node::hasWallIn(Point place){
+	//bool ret = clearBoard[place.y][place.x] == '#';
+	//if (ret == true)
+	//	cerr << "Pushing against wall at " << (int)place.x << "," << (int)place.y << endl;
 	return clearBoard[place.y][place.x] == '#';
 }
 
@@ -39,39 +42,59 @@ bool Node::isFreePoint(Point place){
 // Returns a node object, where the player has moved one step to dir.
 Node* Node::getChild(char dir){
 	Point position = state.player;
-
-	// Check for edges in case of out-of-range errors
-	if (position.x <= 1 || position.y <= 1 ||
-			 position.y >= clearBoard.size() - 2 ||
-			 position.x >= clearBoard[0].size() - 2)
-		{
-			return new Node(state, 'X', this);
-		}
-
 	Point position2;
-	switch (direction)
+
+	//cerr << "Getting child from point " << (int)state.player.x << "," << (int)state.player.y << " to direction " << dir << endl;
+
+	switch (dir)
 	{
 		case 'U':
+			if (position.y <= 1)
+			{
+				//cerr << "Out of bounds ?!?" << endl;
+				return new Node(state, 'X', this);
+			}
 			position = position.up();
 			position2 = position.up();
 			break;
 		case 'R':
+			if (position.x >= clearBoard[position.y].size() - 2)
+			{
+				//cerr << "Out of bounds ?!?" << endl;
+				return new Node(state, 'X', this);
+			}
 			position = position.right();
 			position2 = position.right();
 			break;
 		case 'D':
+			if (position.y >= clearBoard.size() - 2)
+			{
+				//cerr << "Out of bounds ?!?" << endl;
+				return new Node(state, 'X', this);
+			}
 			position = position.down();
 			position2 = position.down();
 			break;
 		case 'L':
+			if (position.x <= 1)
+			{
+				//cerr << "Out of bounds ?!?" << endl;
+				return new Node(state, 'X', this);
+			}
 			position = position.left();
 			position2 = position.left();
 			break;
 	}
 
+	//cerr << "Moving to " << (int)position.x << "," << (int)position.y << " to direction " << dir << endl;
+	//cerr << "Box will move to " << (int)position2.x << "," << (int)position2.y << " to direction " << dir << endl;
 	// Stay in place and use 'X' to denote not moving
 	if (hasWallIn(position) || (hasBoxIn(position) && !isFreePoint(position2)))
+	{
+		//cerr << "Wall or blocked box ?!?!?" << endl;
+		//cerr << "Wall? " << hasWallIn(position) << endl;
 		return new Node(state, 'X', this);
+	}
 
 	vector<Point>::iterator pushed_box = find(state.boxes.begin(), state.boxes.end(), position);
 

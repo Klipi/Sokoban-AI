@@ -101,8 +101,16 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 	vector<Node*> paths;
 	if(isSearchTarget(goals, current))
 	{
+		//cerr << "Start point is goal at " << (int)current->state.player.x << "," <<(int)current->state.player.y << endl;
 		paths.push_back(current);
 	}
+	// else
+	// {
+	// 	for (size_t i = 0; i < goals.size(); i++)
+	// 	{
+	// 		cerr << "Goal at " << (int)goals[i].x << "," <<(int)goals[i].y << endl;
+	// 	}
+	// }
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	knownStates.insert({current->state, 1});
@@ -120,15 +128,16 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 		vector<Node*> children = possibleSteps(clearBoard, currentNode, true);
 		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			if(isSearchTarget(goals, *i))
-			{
-				paths.push_back(*i);
-			}
-
 			if (knownStates.find((*i)->state) == knownStates.end())
 			{
 				knownStates[(*i)->state] = 0;
 				frontier.push(*i);
+
+				if(isSearchTarget(goals, *i))
+				{
+					//cerr << "Found new path to goal at "  << (int)(*i)->state.player.x << "," <<(int)(*i)->state.player.y << endl;
+					paths.push_back(*i);
+				}
 			}
 		}
 	}
@@ -145,24 +154,30 @@ void pushBoxes(vector<Node*>& nodes){
 	directions[2] = 'U';
 	directions[3] = 'D';
 
-	bool first = true;
+
 	size_t originalSize = nodes.size();
 
 	for (size_t i = 0; i < originalSize; i++)
 	{
-		//cerr << "Push #" << i << endl;
+		bool first = true;
+		//cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
 		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
 		for (size_t j = 0; j < neighbours.size(); j++)
 		{
+			//cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 			if (nodes[i]->hasBoxIn(neighbours[j]))
 			{
+				//cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 				if (first)
 				{
+					//cerr << "Pushing to " << directions[j] << endl;
 					first = false;
 					nodes[i] = nodes[i]->getChild(directions[j]);
 				}
 				else
+				{
 					nodes.push_back((nodes[i]->getChild(directions[j])));
+				}
 			}
 
 		}
@@ -486,6 +501,7 @@ int main(int argc, const char **argv) {
 		//cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
 		//cerr << "Search over. Children found:  " << children.size() << endl;
+		//cerr << "Printing children" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
 			if(isGoal(goals,(*i)->state))
@@ -498,7 +514,7 @@ int main(int argc, const char **argv) {
 			if (knownStates.find((*i)->state) == knownStates.end())
 			{
 				knownStates.insert({(*i)->state, 0});
-				// std::cerr << " that was cool" << std::endl;
+				//std::cerr << "New node found, printing..." << std::endl;
 				if (verbose) {
 					std::cerr << getPath(*i) << std::endl;
 					showBoard(clearBoard, (*i)->state);

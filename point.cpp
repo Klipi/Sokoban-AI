@@ -11,11 +11,11 @@ Point Point::right(){
 }
 
 Point Point::up(){
-	return Point(x, y+1);
+	return Point(x, y-1);
 }
 
 Point Point::down(){
-	return Point(x, y-1);
+	return Point(x, y+1);
 }
 
 // Gets the four neighbours for a point

@@ -1,14 +1,12 @@
+#ifndef SOKOBAN_H
+#define SOKOBAN_H
+
 #include <vector>
 #include <string>
 #include <algorithm>
 #include "point.hpp"
 #include "state.hpp"
-
-struct Node {
-	State state;
-	char direction;
-	Node *parent;
-};
+#include "node.hpp"
 
 std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current);
 
@@ -21,3 +19,7 @@ bool isGoal(std::vector<Point> goal, State state);
 State findPathTo(State start, Point goal);
 
 std::string getPath(Node* node);
+
+std::vector<Node*> getNextSteps(std::vector<std::string>, Node *);
+
+#endif

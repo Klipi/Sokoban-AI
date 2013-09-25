@@ -1,11 +1,11 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-#include <tr1/functional>
 #include <algorithm>
 #include <queue>
 #include <list>
 #include "sokoban.hpp"
+#include "globals.hpp"
 
 using namespace std;
 
@@ -42,7 +42,7 @@ bool isBoxStuck(Point box, vector<string> map, Node *current, bool LRCheck) {
 	return false;
 }
 
-// Checks if a box can still be moved. Useful for pruning the search tree.
+// Checks if a box can still be moved. Useful for pruning the search tree. (?)
 bool isBoxStuck(Point box, vector<string> map, Node *current) {
 	return (isBoxStuck(box, map, current, true) && isBoxStuck(box, map, current, false));
 }
@@ -64,8 +64,116 @@ vector<Point> getMovableSides(Point box, vector<string> map, Node *current){
 	return sides;
 }
 
-std::vector<Node*> getNextSteps(std::vector<std::string> map, Node *current) {
-	return possibleSteps(map, current);
+// Checks whether one of the targets has been reached.
+bool isSearchTarget(vector<Point> &goals, Node* node){
+	for (size_t i = 0; i < goals.size(); i++)
+	{
+		if (goals[i] == node->state.player)
+		{
+			goals.erase(goals.begin() + i);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// Finds a path to each of goals, where possible.
+vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
+	vector<Node*> paths;
+
+	unordered_map<State, int, StateHash, StateEqual> knownStates;
+
+	priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
+	frontier.push(current);
+
+	// Same BFS format as in main(). Will exhaust child nodes or find a path to all goals.
+	while(!frontier.empty() && goals.size() > 0)
+	{
+		Node* currentNode = frontier.top();
+		knownStates.insert({currentNode->state, 1});
+		frontier.pop();
+		vector<Node*> children = possibleSteps(clearBoard, currentNode);
+		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
+		{
+			if(isSearchTarget(goals, *i))
+			{
+				paths.push_back(*i);
+			}
+
+			if (knownStates.find((*i)->state) == knownStates.end())
+				frontier.push(*i);
+		}
+	}
+
+	return paths;
+}
+
+
+void pushBoxes(vector<Node*>& nodes){
+	//cerr << "Start pushing." << endl;
+	unordered_map<int, char> directions;
+	directions[0] = 'U';
+	directions[1] = 'R';
+	directions[2] = 'D';
+	directions[3] = 'L';
+
+	bool first = true;
+	size_t originalSize = nodes.size();
+
+	for (size_t i = 0; i < originalSize; i++)
+	{
+		//cerr << "Push #" << i << endl;
+		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
+		for (size_t j = 0; j < neighbours.size(); j++)
+		{
+			if (nodes[i]->hasBoxIn(neighbours[j]))
+			{
+				if (first)
+				{
+					first = false;
+					nodes[i] = nodes[i]->getChild(directions[j]);
+				}
+				else
+					nodes.push_back((nodes[i]->getChild(directions[j])));
+			}
+
+		}
+
+	}
+}
+
+// Given a node, returns the next nodes to be added to the search queue.
+vector<Node*> getNextSteps(vector<string> map, Node *current) {
+	//cerr << "No. of boxes: " << current->state.boxes.size() << endl;
+	// Aggregate "interesting" places for the pathfinding algorithm
+	vector<Point> nextToBox;
+	vector<Node*> foundPaths;
+	for (size_t i = 0; i < current->state.boxes.size(); i++)
+	{
+		Point box = current->state.boxes[i];
+		vector<Point> newPoints = getMovableSides(box, map, current);
+		
+		// If none found, check if box on goal. TODO: otherwise check if box stuck, return empty (infeasible) if stuck.
+		if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end())
+		{
+			//cerr << "Stuck. Box #" << i << ": " << (int)box.x << ", " << (int)box.y << endl;
+			//return foundPaths;
+		}
+		nextToBox.insert(nextToBox.end(), newPoints.begin(), newPoints.end());
+	}
+	//cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
+
+	
+	foundPaths = findPaths(nextToBox, map, current);
+
+	//cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
+
+	pushBoxes(foundPaths);
+
+	//cerr << "Pushing done." << endl;
+
+	return foundPaths;
 }
 
 std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
@@ -260,32 +368,10 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 };
 
-// Nobody likes global variables but we need it to compare states in the priority queue
-std::vector<string> clearBoard;
 
-// Simple, counts how many boxes on goals
-int heuristic(State state)
-{
-	int value = 0;
-
-	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
-		value += clearBoard[i->y][i->x] == '.' ? 1 : 0;
-	}
-
-	return value;
-}
-
-
-struct NodeCompare
-{
-	bool operator()(const Node* a, const Node* b) const
-	{
-		return heuristic(a->state) < heuristic(b->state);
-	}
-};
 
 bool isGoal(std::vector<Point> goal, State state) {
-	// Asume goal and boxes in state is sorted
+	// Assume goal and boxes in state is sorted
 
 	for (size_t i = 0; i < state.boxes.size(); i++)
 	{
@@ -348,14 +434,14 @@ int main(int argc, const char **argv) {
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
-	std::vector<Point> goal = std::vector<Point>();
+	goals = std::vector<Point>();
 
 	// Read the board
 	std::vector<std::string> board;
 	for (std::string line; std::getline(std::cin, line);)
 		board.push_back(line);
 
-	parseBoard(board, start, goal, clearBoard);
+	parseBoard(board, start, goals, clearBoard);
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
@@ -365,10 +451,12 @@ int main(int argc, const char **argv) {
 		Node* current = frontier.top();
 		knownStates.insert({current->state, 1});
 		frontier.pop();
+		//cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
+		//cerr << "Search over. Children found:  " << children.size() << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			if(isGoal(goal,(*i)->state))
+			if(isGoal(goals,(*i)->state))
 			{
 				std::string answer = getPath(*i);
 				std::cout << answer << std::endl;
@@ -385,6 +473,7 @@ int main(int argc, const char **argv) {
 				frontier.push(*i);
 			}
 		}
+
 	}
 
 	return 0;

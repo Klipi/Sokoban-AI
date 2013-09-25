@@ -1,7 +1,8 @@
 #ifndef POINT_H
 #define POINT_H
 
-#include<cstdint>
+#include <cstdint>
+#include <vector>
 
 class Point {
     public:
@@ -31,6 +32,7 @@ class Point {
         Point right();
         Point up();
         Point down();
+        std::vector<Point> getNeighbours();
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <tr1/functional>
 #include "point.hpp"
 
 struct State {
@@ -27,6 +28,8 @@ struct State {
 
         return true;
     }
+    State(){};
+    State(Point pl, std::vector<Point> bxs): player(pl), boxes(bxs) {};
 };
 
 struct StateHash {

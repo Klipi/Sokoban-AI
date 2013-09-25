@@ -11,14 +11,14 @@ using namespace std;
 
 // As below, but only checks for either left-right or up-down. Assumes a box at given Point.
 bool isBoxStuck(Point box, vector<string> map, Node *current, bool LRCheck) {
-	
+
 	Point point1, point2;
 
 	if (LRCheck)
 	{
 		point1 = Point(box.x - 1, box.y);
 		point2 = Point(box.x + 1, box.y);
-		
+
 	}
 	else
 	{
@@ -273,8 +273,6 @@ int heuristic(State state)
 {
 	int value = 0;
 
-	std::sort(goal.begin(),goal.end());
-	std::sort(state.boxes.begin(),state.boxes.end());
 	for (std::vector<Point>::iterator i = state.boxes.begin(),j = goal.begin(); i != state.boxes.end(); ++i, ++j) {
 		value += distance(*i,*j);
 	}

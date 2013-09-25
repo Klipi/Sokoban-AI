@@ -38,12 +38,13 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 			if(
 					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
 					(unsigned)(y+2*dy[i]) < map.size() && (unsigned)(x+2*dx[i]) < map[y+2*dy[i]].size() &&
-					map[y+2*dy[i]][x+2*dx[i]] != '#' &&
+					map[y+2*dy[i]][x+2*dx[i]] != '#' && map[y+2*dy[i]][x+2*dx[i]] != '?' &&
 			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
 			{
 				childstate->state.player = new_pos;
 				childstate->state.boxes = current->state.boxes;
 				childstate->state.boxes[std::distance(current->state.boxes.begin(),pushed_box)] = new_box_pos;
+				std::sort(childstate->state.boxes.begin(), childstate->state.boxes.end());
 				childstate->direction = directions[i];
 				childstate->parent = current;
 				possiblemoves.push_back(childstate);
@@ -108,17 +109,91 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 			clearBoard[i][x] = map[i][x] == '@' ? ' ' : '.';
 		}
 	}
-//	std::cout<<"player: "<<root->state.player.x<<":"<<root->state.player.y<<std::endl;
-//	std::cout<<"boxes:"<<root->state.boxes.size()<<std::endl;
-//	for(int i = 0; i< root->state.boxes.size();++i)
-//	{
-//		std::cout<<root->state.boxes[i].x<<":"<<root->state.boxes[i].y<<std::endl;
-//	}
-//	std::cout<<"goals:"<<goal.size()<<std::endl;
-//	for(int i = 0; i< goal.size();++i)
-//	{
-//		std::cout<<goal[i].x<<":"<<goal[i].y<<std::endl;
-//	}
+
+	// Find edgecells
+
+	// Vertical
+	// There is never more than like 50 cells in the maps given
+	bool edge, LR, UD;
+	size_t combo = -1;
+	for (size_t x = 1; x < 55; x++)
+	{
+		edge = false;
+		combo = 0;
+		for (size_t y = 1; y < clearBoard.size(); y++)
+		{
+			if (clearBoard[y][x] == '#') {
+				if (combo > 0) {
+					// Was on a streak but now it hit the wall => fill the holes
+					for (size_t i = y-1; i > y-combo-1; i--) {
+						clearBoard[i][x] = '?';
+					}
+				}
+				combo = 0;
+			}
+			else {
+				if (combo != -1 && clearBoard[y][x] == ' ') {
+				}
+				if (
+						combo != -1 && clearBoard[y][x] == ' ' && (
+						(clearBoard[y][x-1] == '#') ||
+						(x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#')))
+				{
+					combo++;
+				}
+				else
+				{
+					combo = -1;
+				}
+			}
+		}
+	}
+
+	// Horisontal and corners
+	for (size_t y = 1; y < clearBoard.size(); y++)
+	{
+		edge = false;
+		combo = 0;
+		for (size_t x = 1; x < clearBoard[y].size(); x++)
+		{
+			// Horisontal
+			if (clearBoard[y][x] == '#') {
+				if (combo > 0) {
+					// Was on a streak but now it hit the wall => fill the holes
+					for (size_t i = x-1; i > x-combo-1; i--) {
+						clearBoard[y][i] = '?';
+					}
+				}
+				combo = 0;
+			}
+			else {
+				if (
+						combo != -1 && (clearBoard[y][x] == ' ' || clearBoard[y][x] == '?') && (
+						(clearBoard[y-1][x] == '#') ||
+						(y+1 < clearBoard.size() && clearBoard[y+1][x] == '#')))
+				{
+					combo++;
+				}
+				else
+				{
+					combo = -1;
+				}
+			}
+
+			// Corners
+			if (clearBoard[y][x] == ' ')
+			{
+				UD = clearBoard[y-1][x] == '#' || (y+1 < clearBoard.size() && clearBoard[y+1][x] == '#');
+				LR = clearBoard[y][x-1] == '#' || (x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#');
+
+				if (UD && LR)
+				{
+					clearBoard[y][x] = '?';
+				}
+			}
+
+		}
+	}
 };
 
 // Hash state struct to a size_t. Olli
@@ -161,8 +236,7 @@ struct StateEqual {
 };
 
 bool isGoal(std::vector<Point> goal, State state) {
-	// Asume goal is sorted
-	std::sort(state.boxes.begin(), state.boxes.end());
+	// Asume goal and boxes in state is sorted
 
 	for (size_t i = 0; i < state.boxes.size(); i++)
 	{
@@ -235,16 +309,16 @@ int main(int argc, const char **argv) {
 
 	parseBoard(board, start, goal, clearBoard);
 
-	std::priority_queue<Node*> frontier = std::priority_queue<Node*>();
+	std::queue<Node*> frontier = std::queue<Node*>();
 	frontier.push(start);
 	explored.push_back(start->state);
 
 	while(!frontier.empty())
 	{
-		Node* current = frontier.top();
+		Node* current = frontier.front();
 		explored.push_back(current->state);
 		frontier.pop();
-		std::vector<Node*> children = possibleSteps(board,current);
+		std::vector<Node*> children = possibleSteps(clearBoard,current);
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
 			if(isGoal(goal,(*i)->state))
@@ -256,6 +330,7 @@ int main(int argc, const char **argv) {
 			if (std::find(explored.begin(),explored.end(),(*i)->state)==explored.end())
 			{
 				if (verbose) {
+					std::cerr << getPath(*i) << std::endl;
 					showBoard(clearBoard, (*i)->state);
 				}
 				frontier.push(*i);

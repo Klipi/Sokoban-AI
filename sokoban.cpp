@@ -11,14 +11,14 @@ using namespace std;
 
 // As below, but only checks for either left-right or up-down. Assumes a box at given Point.
 bool isBoxStuck(Point box, vector<string> map, Node *current, bool LRCheck) {
-	
+
 	Point point1, point2;
 
 	if (LRCheck)
 	{
 		point1 = Point(box.x - 1, box.y);
 		point2 = Point(box.x + 1, box.y);
-		
+
 	}
 	else
 	{
@@ -368,8 +368,6 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 };
 
-
-
 bool isGoal(std::vector<Point> goal, State state) {
 	// Assume goal and boxes in state is sorted
 
@@ -434,7 +432,9 @@ int main(int argc, const char **argv) {
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
+
 	goals = std::vector<Point>();
+
 
 	// Read the board
 	std::vector<std::string> board;

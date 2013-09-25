@@ -33,7 +33,7 @@ bool Node::hasBoxIn(Point place){
 
 // For checking if box can be pushed there
 bool Node::isFreePoint(Point place){
-	return !(hasBoxIn(place) || hasWallIn(place));
+	return !(hasBoxIn(place) || hasWallIn(place) || clearBoard[place.y][place.x] == '?');
 }
 
 // Returns a node object, where the player has moved one step to dir.

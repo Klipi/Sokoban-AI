@@ -44,7 +44,25 @@ bool isBoxStuck(Point box, vector<string> map, Node *current, bool LRCheck) {
 
 // Checks if a box can still be moved. Useful for pruning the search tree. (?)
 bool isBoxStuck(Point box, vector<string> map, Node *current) {
-	return (isBoxStuck(box, map, current, true) && isBoxStuck(box, map, current, false));
+	bool stuckLR = isBoxStuck(box, map, current, true);
+	bool stuckUD = isBoxStuck(box, map, current, false);
+
+	return (stuckLR && stuckUD);
+}
+
+bool isBoxInfeasible(Point box, vector<string> map, Node* current){
+	if (isBoxStuck(box, map, current)){
+		char wall = '#';
+		bool wallLR = (map[box.y][box.left().x] == wall) || (map[box.y][box.right().x] == wall);
+		bool wallUD = (map[box.up().y][box.x] == wall) || (map[box.down().y][box.x] == wall);
+
+		if (box.x == 8)
+
+		cerr << "Box at: " <<(int)box.x << "," << (int)box.y << " Stuck. Perma? " << (wallLR && wallUD) << endl;
+		return wallLR && wallUD;
+	}
+
+	return false;
 }
 
 // Returns the coordinates from which the given box can be pushed.
@@ -81,9 +99,13 @@ bool isSearchTarget(vector<Point> &goals, Node* node){
 // Finds a path to each of goals, where possible.
 vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 	vector<Node*> paths;
+	if(isSearchTarget(goals, current))
+	{
+		paths.push_back(current);
+	}
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
-
+	knownStates.insert({current->state, 1});
 	priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
 	frontier.push(current);
 
@@ -91,9 +113,11 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 	while(!frontier.empty() && goals.size() > 0)
 	{
 		Node* currentNode = frontier.top();
-		knownStates.insert({currentNode->state, 1});
 		frontier.pop();
-		vector<Node*> children = possibleSteps(clearBoard, currentNode);
+
+		//cerr << "Pathfinding frontier has " << frontier.size() << " nodes." << endl;
+		knownStates[currentNode->state] = 1;
+		vector<Node*> children = possibleSteps(clearBoard, currentNode, true);
 		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
 			if(isSearchTarget(goals, *i))
@@ -102,7 +126,10 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 			}
 
 			if (knownStates.find((*i)->state) == knownStates.end())
+			{
+				knownStates[(*i)->state] = 0;
 				frontier.push(*i);
+			}
 		}
 	}
 
@@ -155,28 +182,25 @@ vector<Node*> getNextSteps(vector<string> map, Node *current) {
 		vector<Point> newPoints = getMovableSides(box, map, current);
 		
 		// If none found, check if box on goal. TODO: otherwise check if box stuck, return empty (infeasible) if stuck.
-		if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end())
-		{
+		//if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end() && isBoxInfeasible(box, map, current))
+		//{
 			//cerr << "Stuck. Box #" << i << ": " << (int)box.x << ", " << (int)box.y << endl;
-			//return foundPaths;
-		}
+		//	return foundPaths;
+		//}
 		nextToBox.insert(nextToBox.end(), newPoints.begin(), newPoints.end());
 	}
 	//cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
-
 	
 	foundPaths = findPaths(nextToBox, map, current);
-
 	//cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
-
+	
 	pushBoxes(foundPaths);
-
 	//cerr << "Pushing done." << endl;
 
 	return foundPaths;
 }
 
-std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
+std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current, bool avoidBoxes = false) {
 	// Find possible steps and put into vector. Johan
 	std::vector<Node*> possiblemoves;
 	int x = current->state.player.x;
@@ -197,6 +221,9 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 		std::vector<Point>::iterator pushed_box = std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos);
 		if (pushed_box!=current->state.boxes.end())
 		{
+			if (avoidBoxes)
+				continue;
+
 			Point new_box_pos;
 			new_box_pos.x = x+2*dx[i];
 			new_box_pos.y = y+2*dy[i];
@@ -272,13 +299,13 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		if((x=map[i].find('@')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
-			clearBoard[i][x] = map[i][x] == ' ';
+			clearBoard[i][x] = ' ';
 		}
 		else if((x=map[i].find('+')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
 			goal.push_back(Point(x,i));
-			clearBoard[i][x] = map[i][x] == '.';
+			clearBoard[i][x] = '.';
 		}
 	}
 
@@ -432,6 +459,7 @@ int main(int argc, const char **argv) {
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
+	knownStates.insert({start->state, 0});
 
 	goals = std::vector<Point>();
 
@@ -449,8 +477,10 @@ int main(int argc, const char **argv) {
 	while(!frontier.empty())
 	{
 		Node* current = frontier.top();
-		knownStates.insert({current->state, 1});
 		frontier.pop();
+		//cerr << "Frontier has " << frontier.size() << " nodes." << endl;
+
+		knownStates[current->state] = 1;
 		//cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
 		//cerr << "Search over. Children found:  " << children.size() << endl;
@@ -465,6 +495,7 @@ int main(int argc, const char **argv) {
 
 			if (knownStates.find((*i)->state) == knownStates.end())
 			{
+				knownStates.insert({(*i)->state, 0});
 				// std::cerr << " that was cool" << std::endl;
 				if (verbose) {
 					std::cerr << getPath(*i) << std::endl;

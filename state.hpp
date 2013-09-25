@@ -52,6 +52,8 @@ struct StateEqual {
     {
         State first (cFirst);
         State second (cSecond);
+        sort(first.boxes.begin(), first.boxes.end());
+        sort(second.boxes.begin(), second.boxes.end());
         // std::cerr << "player (" << (int)first.player.x << "," << (int)first.player.y << ") == (" << (int)second.player.x << "," << (int)second.player.y << ") " << std::endl;;
         if (first.player != second.player)
             return false;

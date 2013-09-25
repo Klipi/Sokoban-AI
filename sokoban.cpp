@@ -103,10 +103,16 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 			clearBoard[i][x] = '.';
 		}
 
-		if((x=map[i].find('@')) < std::string::npos || (x=map[i].find('+')) < std::string::npos)
+		if((x=map[i].find('@')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
-			clearBoard[i][x] = map[i][x] == '@' ? ' ' : '.';
+			clearBoard[i][x] = map[i][x] == ' ';
+		}
+		else if((x=map[i].find('+')) < std::string::npos)
+		{
+			root->state.player = Point(x,i);
+			goal.push_back(Point(x,i));
+			clearBoard[i][x] = map[i][x] == '.';
 		}
 	}
 

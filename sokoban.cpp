@@ -262,14 +262,21 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 
 // Nobody likes global variables but we need it to compare states in the priority queue
 std::vector<string> clearBoard;
+std::vector<Point> goal = std::vector<Point>();
 
+int distance(Point p1, Point p2)
+{
+	return abs(p1.x - p2.x) + abs(p1.y- p2.y);
+}
 // Simple, counts how many boxes on goals
 int heuristic(State state)
 {
 	int value = 0;
 
-	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
-		value += clearBoard[i->y][i->x] == '.' ? 1 : 0;
+	std::sort(goal.begin(),goal.end());
+	std::sort(state.boxes.begin(),state.boxes.end());
+	for (std::vector<Point>::iterator i = state.boxes.begin(),j = goal.begin(); i != state.boxes.end(); ++i, ++j) {
+		value += distance(*i,*j);
 	}
 
 	return value;
@@ -348,7 +355,6 @@ int main(int argc, const char **argv) {
 
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
-	std::vector<Point> goal = std::vector<Point>();
 
 	// Read the board
 	std::vector<std::string> board;

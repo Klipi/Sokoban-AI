@@ -33,7 +33,18 @@ struct State {
     // Seems broken? Used only for same player position?
     bool operator==(const State& other){
 		//std::pair<std::vector<Point>::iterator ,std::vector<Point>::iterator > theSame = std::mismatch(boxes.begin(),boxes.end(),other.boxes.begin());
-		return player==other.player;// && theSame.first!=boxes.end();
+		if (player != other.player)
+        {
+            return false;
+        }
+
+        for (size_t i = 0; i < boxes.size(); i++) {
+            if (boxes[i] != other.boxes[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 };
 struct Node {
@@ -45,7 +56,7 @@ struct Node {
 
 std::vector<Node*> possibleSteps(std::vector<std::string> map, State *current);
 
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal);
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<std::string> &clearBoard);
 
 int hashState(State state);
 

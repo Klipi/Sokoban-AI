@@ -17,71 +17,51 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 	int y = current->state.player.y;
 	int dx[4] = {1, -1, 0, 0};
 	int dy[4] = {0, 0, 1, -1};
-	char directions[4] = {'R','L','U','D'};
-	char antidirections[4] = {'L','R','D','U'};
-	Node* childstate = new Node();
-	for(size_t i=0;i<3;i++){
-		// check if we move back to the previous state
-		if(current->direction == antidirections[i]){
-			bool box_pushed = false;
-			for(size_t j = 0; j<current->state.boxes.size();j++){
-				if(current->parent->state.boxes[j].x != current->state.boxes[j].x ||
-						current->parent->state.boxes[j].y != current->state.boxes[j].y){
-					box_pushed = false;
-					break;
-				}
-			}
-			if(box_pushed){
-				childstate->state.player.x = x+dx[i];
-				childstate->state.player.y = y+dy[i];
+	char directions[4] = {'R','L','D','U'};
+
+	for(size_t i=0;i<4;i++)
+	{
+			Node* childstate = new Node();
+			Point new_pos;
+	        new_pos.x = x+dx[i];
+	        new_pos.y = y+dy[i];
+
+		// check if push is possible
+		// Which box is pushed (if any)
+		std::vector<Point>::iterator pushed_box = std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos);
+		if (pushed_box!=current->state.boxes.end())
+		{
+			Point new_box_pos;
+			new_box_pos.x = x+2*dx[i];
+			new_box_pos.y = y+2*dy[i];
+
+			if(
+					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
+					(unsigned)(y+2*dy[i]) < map.size() && (unsigned)(x+2*dx[i]) < map[y+2*dy[i]].size() &&
+					map[y+2*dy[i]][x+2*dx[i]] != '#' && map[y+2*dy[i]][x+2*dx[i]] != '?' &&
+			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
+			{
+				childstate->state.player = new_pos;
 				childstate->state.boxes = current->state.boxes;
+				childstate->state.boxes[std::distance(current->state.boxes.begin(),pushed_box)] = new_box_pos;
+				std::sort(childstate->state.boxes.begin(), childstate->state.boxes.end());
 				childstate->direction = directions[i];
 				childstate->parent = current;
 				possiblemoves.push_back(childstate);
 			}
-			else if(i==3)
-				break;
-			else
-				i++;
 		}
 
 		// check if move is possible
-		if(map[x+dx[i]][y+dy[i]] == ' ' || map[x+dx[i]][y+dy[i]] == '.'){
-			childstate->state.player.x = x+dx[i];
-			childstate->state.player.y = y+dy[i];
+		else if(
+				y+dy[i] > 0 && x+dx[i] > 0 &&
+				(unsigned)(y+dy[i]) < map.size() && (unsigned)(x+dx[i]) < map[y+dy[i]].size() &&
+				map[y+dy[i]][x+dx[i]] != '#')
+		{
+			childstate->state.player = new_pos;
 			childstate->state.boxes = current->state.boxes;
 			childstate->direction = directions[i];
 			childstate->parent = current;
 			possiblemoves.push_back(childstate);
-		}
-
-		// check if push is possible
-		else if(map[x+dx[i]][y+dy[i]] != '#'){
-			int box_number; // The box that is being pushed
-			bool can_push = (map[x+2*dx[i]][y+2*dy[i]] == ' ' || map[x+2*dx[i]][y+2*dy[i]] == '.');
-			if(can_push){
-				for(size_t j=0;j<current->state.boxes.size();j++){
-					if((x+2*dx[i])==current->state.boxes[j].x &&
-							(y+2*dy[i])==current->state.boxes[j].y){
-						can_push = false;
-						break;
-					}
-					else if((x+dx[i])==current->state.boxes[j].x &&
-							(y+dy[i])==current->state.boxes[j].y){
-						box_number = j;
-					}
-				}
-			}
-			if(can_push){
-				childstate->state.player.x = x+dx[i];
-				childstate->state.player.y = y+dy[i];
-				childstate->state.boxes = current->state.boxes;
-				childstate->state.boxes[box_number].x = x+2*dx[i];
-				childstate->state.boxes[box_number].y = y+2*dy[i];
-				childstate->direction = directions[i];
-				childstate->parent = current;
-				possiblemoves.push_back(childstate);
-			}
 		}
 
 	}
@@ -89,35 +69,136 @@ std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current) {
 };
 
 
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal) {
+// Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard) {
 	// Parse the board and save the current state into currentstate and all possible goal states in the vector
 	// Filip
 	for (uint8_t i = 0; i<map.size();++i)
 	{
-		//std::cout<<board[i]<<std::endl;
-		uint8_t x;
+		int x;
 		int p=0;
-		while((x=map[i].find('$',p))<std::string::npos)
+
+		clearBoard.push_back(map[i]);
+
+		while((x=map[i].find('$',p)) < std::string::npos)
 		{
 			p=x+1;
 			root->state.boxes.push_back(Point(x,i));
+			clearBoard[i][x] = ' ';
 		}
 
+		p=0;
 		while((x=map[i].find('.',p))<std::string::npos)
 		{
 			p=x+1;
 			goal.push_back(Point(x,i));
 		}
 
+		p=0;
 		while((x=map[i].find('*',p))<std::string::npos)
 		{
 			p=x+1;
 			goal.push_back(Point(x,i));
 			root->state.boxes.push_back(Point(x,i));
+			clearBoard[i][x] = '.';
 		}
 
-		if((x=map[i].find('@'))<std::string::npos || (x=map[i].find('+'))<std::string::npos)
+		if((x=map[i].find('@')) < std::string::npos)
+		{
 			root->state.player = Point(x,i);
+			clearBoard[i][x] = map[i][x] == ' ';
+		}
+		else if((x=map[i].find('+')) < std::string::npos)
+		{
+			root->state.player = Point(x,i);
+			goal.push_back(Point(x,i));
+			clearBoard[i][x] = map[i][x] == '.';
+		}
+	}
+
+	// Find edgecells
+
+	// Vertical
+	// There is never more than like 50 cells in the maps given
+	bool edge, LR, UD;
+	size_t combo = -1;
+	for (size_t x = 1; x < 55; x++)
+	{
+		edge = false;
+		combo = 0;
+		for (size_t y = 1; y < clearBoard.size(); y++)
+		{
+			if (clearBoard[y][x] == '#') {
+				if (combo > 0) {
+					// Was on a streak but now it hit the wall => fill the holes
+					for (size_t i = y-1; i > y-combo-1; i--) {
+						clearBoard[i][x] = '?';
+					}
+				}
+				combo = 0;
+			}
+			else {
+				if (combo != -1 && clearBoard[y][x] == ' ') {
+				}
+				if (
+						combo != -1 && clearBoard[y][x] == ' ' && (
+						(clearBoard[y][x-1] == '#') ||
+						(x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#')))
+				{
+					combo++;
+				}
+				else
+				{
+					combo = -1;
+				}
+			}
+		}
+	}
+
+	// Horisontal and corners
+	for (size_t y = 1; y < clearBoard.size(); y++)
+	{
+		edge = false;
+		combo = 0;
+		for (size_t x = 1; x < clearBoard[y].size(); x++)
+		{
+			// Horisontal
+			if (clearBoard[y][x] == '#') {
+				if (combo > 0) {
+					// Was on a streak but now it hit the wall => fill the holes
+					for (size_t i = x-1; i > x-combo-1; i--) {
+						clearBoard[y][i] = '?';
+					}
+				}
+				combo = 0;
+			}
+			else {
+				if (
+						combo != -1 && (clearBoard[y][x] == ' ' || clearBoard[y][x] == '?') && (
+						(clearBoard[y-1][x] == '#') ||
+						(y+1 < clearBoard.size() && clearBoard[y+1][x] == '#')))
+				{
+					combo++;
+				}
+				else
+				{
+					combo = -1;
+				}
+			}
+
+			// Corners
+			if (clearBoard[y][x] == ' ')
+			{
+				UD = clearBoard[y-1][x] == '#' || (y+1 < clearBoard.size() && clearBoard[y+1][x] == '#');
+				LR = clearBoard[y][x-1] == '#' || (x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#');
+
+				if (UD && LR)
+				{
+					clearBoard[y][x] = '?';
+				}
+			}
+
+		}
 	}
 };
 
@@ -142,27 +223,60 @@ struct StateEqual {
 	{
 		State first (cFirst);
 		State second (cSecond);
-		std::sort(first.boxes.begin(), first.boxes.end());
-		std::sort(second.boxes.begin(), second.boxes.end());
-		if (first.boxes.size() != second.boxes.size())
-			return false;
-
+		// std::cerr << "player (" << (int)first.player.x << "," << (int)first.player.y << ") == (" << (int)second.player.x << "," << (int)second.player.y << ") " << std::endl;;
 		if (first.player != second.player)
 			return false;
 
 		for (size_t i = 0; i != first.boxes.size(); i++)
 		{
+			// std::cerr << "box (" << (int)first.boxes[i].x << "," << (int)first.boxes[i].y << ") == (" << (int)second.boxes[i].x << "," << (int)second.boxes[i].y << ") ";
 			if (first.boxes[i] != second.boxes[i])
+			{
+				// std::cerr << "Mismatch" << std::endl;
 				return false;
+			}
+			// std::cerr << "Match" << std::endl;
 		}
 
 	    return true;
 	}
 };
 
+// Nobody likes global variables but we need it to compare states in the priority queue
+std::vector<string> clearBoard;
+
+// Simple, counts how many boxes on goals
+int heuristic(State state)
+{
+	int value = 0;
+
+	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
+		value += clearBoard[i->y][i->x] == '.' ? 1 : 0;
+	}
+
+	return value;
+}
+
+
+struct NodeCompare
+{
+	bool operator()(const Node* a, const Node* b) const
+	{
+		return heuristic(a->state) < heuristic(b->state);
+	}
+};
+
 bool isGoal(std::vector<Point> goal, State state) {
-	// Check if the state is goooooal
-	return false;
+	// Asume goal and boxes in state is sorted
+
+	for (size_t i = 0; i < state.boxes.size(); i++)
+	{
+		if (goal[i] != state.boxes[i])
+		{
+			return false;
+		}
+	}
+	return true;
 };
 
 std::string getPath(Node* node) {
@@ -176,35 +290,64 @@ std::string getPath(Node* node) {
 	return path;
 };
 
+// Not now lol
 State findPathTo(State start, Point goal) {
 	/* Find the path for the player to the goal point. Creates the child nodes
 	   and returning the last one if reached the goal TODO: Olli? */
 	return State();
 };
 
+// Sends the board to cerr (used for debugging)
+void showBoard(std::vector<std::string> clearBoard, State state) {
+	// PLayer position
+	clearBoard[state.player.y][state.player.x] = clearBoard[state.player.y][state.player.x] == '.' ? '+' : '@';
+
+	for(std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
+	{
+		clearBoard[i->y][i->x] = clearBoard[i->y][i->x] == '.' ? '*' : '$';
+	}
+
+	// Send it to cerr
+	for (std::vector<string>::iterator row = clearBoard.begin(); row != clearBoard.end(); row++) {
+		std::cerr << *row << std::endl;
+	}
+	std::cerr << std::endl;
+};
 
 int main(int argc, const char **argv) {
+	bool verbose = false;
+	for (int i = 1; i < argc; ++i)
+	{
+		std::string param(argv[i]);
+		if (param == "verbose" || param == "v")
+			verbose = true;
+		else
+		{
+			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
+			return -1;
+		}
+	}
+
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	Node* start = new Node();
+	std::vector<Point> goal = std::vector<Point>();
 
 	// Read the board
 	std::vector<std::string> board;
 	for (std::string line; std::getline(std::cin, line);)
 		board.push_back(line);
-	Node* start = new Node();
-	std::vector<Point> goal = std::vector<Point>();
-	parseBoard(board, start, goal);
-	// TODO: Find path to goal
-	// Implement algoritm. Filip
 
-	std::priority_queue<Node*> frontier = std::priority_queue<Node*>();
+	parseBoard(board, start, goal, clearBoard);
+
+	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
-	std::list<State> explored = std::list<State>();
+
 	while(!frontier.empty())
 	{
 		Node* current = frontier.top();
-		explored.push_back(current->state);
+		knownStates.insert({current->state, 1});
 		frontier.pop();
-		std::vector<Node*> children = possibleSteps(board,current);
+		std::vector<Node*> children = possibleSteps(clearBoard,current);
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
 			if(isGoal(goal,(*i)->state))
@@ -213,14 +356,18 @@ int main(int argc, const char **argv) {
 				std::cout << answer << std::endl;
 				return 0;
 			}
-			if (std::find(explored.begin(),explored.end(),(*i)->state)==explored.end())
+
+			if (knownStates.find((*i)->state) == knownStates.end())
 			{
+				// std::cerr << " that was cool" << std::endl;
+				if (verbose) {
+					std::cerr << getPath(*i) << std::endl;
+					showBoard(clearBoard, (*i)->state);
+				}
 				frontier.push(*i);
 			}
 		}
 	}
 
-	// Output answer
-	// std::cout << getPath(goalState) << std::endl;
 	return 0;
 }

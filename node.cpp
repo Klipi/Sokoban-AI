@@ -9,13 +9,26 @@ int distance(Point p1, Point p2)
 	return abs(p1.x - p2.x) + abs(p1.y- p2.y);
 }
 
-// Simple, counts how many boxes on goals
+// Smaller = closer to goal.
 int heuristic(State state)
 {
 	int value = 0;
 
-	for (std::vector<Point>::iterator i = state.boxes.begin(),j = goals.begin(); i != state.boxes.end(); ++i, ++j) {
-		value += distance(*i,*j);
+	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
+		if (find(goals.begin(), goals.end(), *i) != goals.end())
+		{
+			value -= 20;
+			continue;
+		}
+		int minSoFar = 1000;
+		for (vector<Point>::iterator j = goals.begin(); j != goals.end(); ++j)
+		{
+			if (find(state.boxes.begin(), state.boxes.end(), *j) == state.boxes.end())
+			{
+				minSoFar = min(minSoFar, distance(*i, *j));
+			}
+		}
+		value += minSoFar;
 	}
 
 	return value;

@@ -487,6 +487,7 @@ int main(int argc, const char **argv) {
 		board.push_back(line);
 
 	parseBoard(board, start, goals, clearBoard);
+	sort(goals.begin(), goals.end());
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);

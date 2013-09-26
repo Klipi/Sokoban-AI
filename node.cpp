@@ -95,7 +95,7 @@ bool Node::isFreePoint(Point place){
 
 
 bool Node::identifyDeadBox(Point box){
-	if (debug > 8) cerr << "Getting child from point " << (int)state.player.x << "," << (int)state.player.y << " to direction " << dir << endl;
+	// if (debug > 8) cerr << "Getting child from point " << (int)state.player.x << "," << (int)state.player.y << " to direction " << dir << endl;
 	if (this->isBoxStuck(box)){
 		char wall = '#';
 		bool wallLR = (clearBoard[box.y][box.left().x] == wall) || (clearBoard[box.y][box.right().x] == wall);

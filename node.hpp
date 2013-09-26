@@ -15,6 +15,9 @@ class Node {
 		bool isFreePoint(Point);
 		Node* getChild(char);
 		bool identifyDeadBox(Node*, Point);
+		bool isBoxStuck(Point, bool);
+		bool isBoxStuck(Point);
+		bool identifyDeadBox(Point);
 
 		Node():direction(' '),parent(NULL){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};

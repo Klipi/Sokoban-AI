@@ -9,72 +9,16 @@
 
 using namespace std;
 
-// As below, but only checks for either left-right or up-down. Assumes a box at given Point.
-bool isBoxStuck(Point box, vector<string> map, Node *current, bool LRCheck) {
-
-	Point point1, point2;
-
-	if (LRCheck)
-	{
-		point1 = Point(box.x - 1, box.y);
-		point2 = Point(box.x + 1, box.y);
-
-	}
-	else
-	{
-		point1 = Point(box.x, box.y - 1);
-		point2 = Point(box.x, box.y + 1);
-	}
-
-	Point new_pos[2] = {point1, point2};
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		// Wall?
-		if (map[(new_pos[i]).y][(new_pos[i]).x] == '#')
-			return true;
-
-		// Another box?
-		if (std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos[i]) != current->state.boxes.end())
-			return true;
-	}
-
-	return false;
-}
-
-// Checks if a box can still be moved. Useful for pruning the search tree. (?)
-bool isBoxStuck(Point box, vector<string> map, Node *current) {
-	bool stuckLR = isBoxStuck(box, map, current, true);
-	bool stuckUD = isBoxStuck(box, map, current, false);
-
-	return (stuckLR && stuckUD);
-}
-
-bool isBoxInfeasible(Point box, vector<string> map, Node* current){
-	if (isBoxStuck(box, map, current)){
-		char wall = '#';
-		bool wallLR = (map[box.y][box.left().x] == wall) || (map[box.y][box.right().x] == wall);
-		bool wallUD = (map[box.up().y][box.x] == wall) || (map[box.down().y][box.x] == wall);
-
-		if (box.x == 8)
-
-		cerr << "Box at: " <<(int)box.x << "," << (int)box.y << " Stuck. Perma? " << (wallLR && wallUD) << endl;
-		return wallLR && wallUD;
-	}
-
-	return false;
-}
-
 // Returns the coordinates from which the given box can be pushed.
 vector<Point> getMovableSides(Point box, vector<string> map, Node *current){
 	vector<Point> sides;
 
-	if (!isBoxStuck(box, map, current, true)){
+	if (!current->isBoxStuck(box, true)){
 		sides.push_back(box.left());
 		sides.push_back(box.right());
 	}
 
-	if (!isBoxStuck(box, map, current, false)){
+	if (!current->isBoxStuck(box, false)){
 		sides.push_back(box.up());
 		sides.push_back(box.down());
 	}
@@ -147,7 +91,6 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 
 
 void pushBoxes(vector<Node*>& nodes){
-	//cerr << "Start pushing." << endl;
 	unordered_map<int, char> directions;
 	directions[0] = 'L';
 	directions[1] = 'R';
@@ -160,22 +103,23 @@ void pushBoxes(vector<Node*>& nodes){
 	for (size_t i = 0; i < originalSize; i++)
 	{
 		bool first = true;
-		//cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
+		if (debug > 3) cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
 		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
 		for (size_t j = 0; j < neighbours.size(); j++)
 		{
-			//cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
+			if (debug > 4) cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 			if (nodes[i]->hasBoxIn(neighbours[j]))
 			{
-				//cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
+				if (debug > 5) cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 				if (first)
 				{
-					//cerr << "Pushing to " << directions[j] << endl;
+					if (debug > 6) cerr << "Pushing to " << directions[j] << endl;
 					first = false;
 					nodes[i] = nodes[i]->getChild(directions[j]);
 				}
 				else
 				{
+					if (debug > 6) cerr << "Pushing to " << directions[j] << endl;
 					nodes.push_back((nodes[i]->getChild(directions[j])));
 				}
 			}
@@ -196,7 +140,6 @@ vector<Node*> getNextSteps(vector<string> map, Node *current) {
 		Point box = current->state.boxes[i];
 		vector<Point> newPoints = getMovableSides(box, map, current);
 		
-		// If none found, check if box on goal. TODO: otherwise check if box stuck, return empty (infeasible) if stuck.
 		//if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end() && isBoxInfeasible(box, map, current))
 		//{
 			//cerr << "Stuck. Box #" << i << ": " << (int)box.x << ", " << (int)box.y << endl;
@@ -204,13 +147,13 @@ vector<Node*> getNextSteps(vector<string> map, Node *current) {
 		//}
 		nextToBox.insert(nextToBox.end(), newPoints.begin(), newPoints.end());
 	}
-	//cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
+	if (debug > 2) cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
 	
 	foundPaths = findPaths(nextToBox, map, current);
-	//cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
+	if (debug > 2) cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
 	
 	pushBoxes(foundPaths);
-	//cerr << "Pushing done." << endl;
+	if (debug > 2) cerr << "Pushing done." << endl;
 
 	return foundPaths;
 }
@@ -523,18 +466,28 @@ bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates,
 
 int main(int argc, const char **argv) {
 	bool verbose = false;
+	debug = 0;
 	for (int i = 1; i < argc; ++i)
 	{
 		std::string param(argv[i]);
 		if (param == "verbose" || param == "v")
+		{
 			verbose = true;
+		}
+		else if (param == "debug" || param == "d")
+		{
+			if (i + 1 < argc)
+				debug = (int)*argv[++i] - '0';
+			else
+				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
+		}
 		else
 		{
 			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
 			return -1;
 		}
 	}
-
+	cerr << debug << endl;
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
 	
@@ -562,12 +515,12 @@ int main(int argc, const char **argv) {
 			std::cerr << getPath(current) << std::endl;
 			showBoard(clearBoard, (current)->state);
 		}
-		//cerr << "Frontier has " << frontier.size() << " nodes." << endl;
+		if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
 
 		//knownStates[current->state] = 1;
-		//cerr << "Finding next nodes." << endl;
+		if (debug > 1) cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
-		//cerr << "Search over. Children found:  " << children.size() << endl;
+		if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
 		//cerr << "Printing children" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{

@@ -8,5 +8,6 @@
 // Nobody likes global variables but we need it to compare states in the priority queue
 extern std::vector<std::string> clearBoard;
 extern std::vector<Point> goals;
+extern int debug;
 
 #endif

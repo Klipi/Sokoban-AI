@@ -503,6 +503,8 @@ int main(int argc, const char **argv) {
 	parseBoard(board, start, goals, clearBoard);
 	sort(goals.begin(), goals.end());
 	addToHashMap(knownStates, start, 0);
+	int best = heuristic(start->state);
+	Node* bestNode = start;
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
@@ -512,6 +514,14 @@ int main(int argc, const char **argv) {
 		Node* current = frontier.top();
 		frontier.pop();
 		if (verbose) {
+			int value = heuristic(current->state);
+			cerr << "Current heuristic value: " << value << endl;
+			cerr << "Best heuristic value before: " << best << endl;
+			if (value < best )
+			{
+				best = value;
+				bestNode = current;
+			}
 			std::cerr << getPath(current) << std::endl;
 			showBoard(clearBoard, (current)->state);
 		}
@@ -521,9 +531,16 @@ int main(int argc, const char **argv) {
 		if (debug > 1) cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
 		if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
-		//cerr << "Printing children" << endl;
+		// cerr << "Printing children." << endl;
+		// cerr << "===============================" << endl;
+		// cerr << "===============================" << endl;
+		// cerr << "===============================" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
+			std::cerr << getPath(current) << std::endl;
+			showBoard(clearBoard, (current)->state);
+			cerr << endl << endl;
+			
 			if(isGoal(goals,(*i)->state))
 			{
 				std::string answer = getPath(*i);
@@ -538,6 +555,11 @@ int main(int argc, const char **argv) {
 			}
 		}
 
+
+		// cerr << "===============================" << endl;
+		// cerr << "===============================" << endl;
+		// cerr << "===============================" << endl;
+		// cerr << "End of children." << endl;
 	}
 
 	return 0;

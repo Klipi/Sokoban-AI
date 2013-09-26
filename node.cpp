@@ -9,6 +9,7 @@ int distance(Point p1, Point p2)
 	return abs(p1.x - p2.x) + abs(p1.y- p2.y);
 }
 
+// Smaller = closer to goal.
 int heuristic(State state)
 {
 	int value = 0;
@@ -125,15 +126,10 @@ bool Node::isFreePoint(Point place){
 
 
 bool Node::identifyDeadBox(Point box){
-	// if (debug > 8) cerr << "Getting child from point " << (int)state.player.x << "," << (int)state.player.y << " to direction " << dir << endl;
-	if (this->isBoxStuck(box)){
-		char wall = '#';
-		bool wallLR = (clearBoard[box.y][box.left().x] == wall) || (clearBoard[box.y][box.right().x] == wall);
-		bool wallUD = (clearBoard[box.up().y][box.x] == wall) || (clearBoard[box.down().y][box.x] == wall);
+	// bool wallLR = (clearBoard[box.y][box.left().x] == '#') || (clearBoard[box.y][box.right().x] == '#');
+	// bool wallUD = (clearBoard[box.up().y][box.x] == '#') || (clearBoard[box.down().y][box.x] == '#');
 
-		return wallLR && wallUD;
-	}
-
+	// return wallLR && wallUD;
 	return false;
 }
 // Returns a node object, where the player has moved one step to dir.
@@ -207,12 +203,12 @@ Node* Node::getChild(char dir){
 	State newState (position, newBoxes);
 	Node* child = new Node(newState, dir, this);
 
-	//if (debug > 7) cerr << "Identifying deadlocks" << endl;
-	//if (child->identifyDeadBox(newBoxes[distance(state.boxes.begin(), pushed_box)]))
-	//{
-	//	if (debug > 7) cerr << "Deadlock found with box at " << (int)position2.x << "," << (int)position2.y << endl;
-	//	return new Node(state, 'X', this);
-	//}
+	if (debug > 7) cerr << "Identifying deadlocks" << endl;
+	if (child->identifyDeadBox(newBoxes[distance(state.boxes.begin(), pushed_box)]))
+	{
+		if (debug > 7) cerr << "Deadlock found with box at " << (int)position2.x << "," << (int)position2.y << endl;
+		return new Node(state, 'X', this);
+	}
 
 	return child;
 }

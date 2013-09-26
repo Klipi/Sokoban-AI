@@ -102,6 +102,7 @@ void pushBoxes(vector<Node*>& nodes){
 
 	for (size_t i = 0; i < originalSize; i++)
 	{
+		Node* tempNode;
 		bool first = true;
 		if (debug > 3) cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
 		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
@@ -110,22 +111,23 @@ void pushBoxes(vector<Node*>& nodes){
 			if (debug > 4) cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 			if (nodes[i]->hasBoxIn(neighbours[j]))
 			{
+
 				if (debug > 5) cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 				if (first)
 				{
-					if (debug > 6) cerr << "Pushing to " << directions[j] << endl;
+					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
 					first = false;
-					nodes[i] = nodes[i]->getChild(directions[j]);
+					tempNode = nodes[i]->getChild(directions[j]);
 				}
 				else
 				{
-					if (debug > 6) cerr << "Pushing to " << directions[j] << endl;
+					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
 					nodes.push_back((nodes[i]->getChild(directions[j])));
 				}
 			}
 
 		}
-
+		nodes[i] = tempNode;
 	}
 }
 

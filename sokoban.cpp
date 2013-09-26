@@ -531,16 +531,9 @@ int main(int argc, const char **argv) {
 		if (debug > 1) cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
 		if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
-		// cerr << "Printing children." << endl;
-		// cerr << "===============================" << endl;
-		// cerr << "===============================" << endl;
-		// cerr << "===============================" << endl;
+
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			std::cerr << getPath(current) << std::endl;
-			showBoard(clearBoard, (current)->state);
-			cerr << endl << endl;
-			
 			if(isGoal(goals,(*i)->state))
 			{
 				std::string answer = getPath(*i);
@@ -554,12 +547,6 @@ int main(int argc, const char **argv) {
 				frontier.push(*i);
 			}
 		}
-
-
-		// cerr << "===============================" << endl;
-		// cerr << "===============================" << endl;
-		// cerr << "===============================" << endl;
-		// cerr << "End of children." << endl;
 	}
 
 	return 0;

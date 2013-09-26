@@ -9,35 +9,60 @@ int distance(Point p1, Point p2)
 	return abs(p1.x - p2.x) + abs(p1.y- p2.y);
 }
 
-// Smaller = closer to goal.
 int heuristic(State state)
 {
 	int value = 0;
-	int player_distance = 1000;
 
-	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
-		
-		player_distance = min(player_distance,distance(*i,state.player)); // Distance from player to closest box
-		
-		//if (find(goals.begin(), goals.end(), *i) != goals.end())
-		//{
-		//	value -= 20;
-		//	continue;
-		//}
+	vector<Point> usedBoxes;
+
+	for (vector<Point>::iterator j = goals.begin(); j != goals.end(); ++j)
+	{
 		int minSoFar = 1000;
-		for (vector<Point>::iterator j = goals.begin(); j != goals.end(); ++j)
+		Point bestSoFar;
+
+		for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
 		{
-			if (find(state.boxes.begin(), state.boxes.end(), *j) == state.boxes.end())
+			if (minSoFar > distance(*i, *j) && find(usedBoxes.begin(), usedBoxes.end(), *i) == usedBoxes.end())
 			{
-				minSoFar = min(minSoFar, distance(*i, *j));
+				minSoFar = distance(*i, *j);
+				bestSoFar = *i;
 			}
 		}
 		value += minSoFar;
+		usedBoxes.push_back(bestSoFar);
 	}
-	value += 3*player_distance; // 3 arbitrarily chosen, needs some testing
-
 	return value;
 }
+
+// // Smaller = closer to goal.
+// int heuristic(State state)
+// {
+// 	int value = 0;
+// 	int player_distance = 1000;
+
+// 	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
+		
+// 		player_distance = min(player_distance,distance(*i,state.player)); // Distance from player to closest box
+		
+// 		//if (find(goals.begin(), goals.end(), *i) != goals.end())
+// 		//{
+// 		//	value -= 20;
+// 		//	continue;
+// 		//}
+// 		int minSoFar = 1000;
+// 		for (vector<Point>::iterator j = goals.begin(); j != goals.end(); ++j)
+// 		{
+// 			if (find(state.boxes.begin(), state.boxes.end(), *j) == state.boxes.end())
+// 			{
+// 				minSoFar = min(minSoFar, distance(*i, *j));
+// 			}
+// 		}
+// 		value += minSoFar;
+// 	}
+// 	value += 3*player_distance; // 3 arbitrarily chosen, needs some testing
+
+// 	return value;
+// }
 
 // As below, but only checks for either left-right or up-down. Assumes a box at given Point.
 bool Node::isBoxStuck(Point box, bool LRCheck) {

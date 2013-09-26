@@ -487,7 +487,7 @@ int main(int argc, const char **argv) {
 			return -1;
 		}
 	}
-	cerr << debug << endl;
+	if (debug > 0) cerr << "Stating debug level " << debug << endl;
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = new Node();
 	

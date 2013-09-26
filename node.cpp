@@ -13,8 +13,12 @@ int distance(Point p1, Point p2)
 int heuristic(State state)
 {
 	int value = 0;
+	int player_distance = 1000;
 
 	for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i) {
+		
+		player_distance = min(player_distance,distance(*i,state.player)); // Distance from player to closest box
+		
 		//if (find(goals.begin(), goals.end(), *i) != goals.end())
 		//{
 		//	value -= 20;
@@ -30,6 +34,7 @@ int heuristic(State state)
 		}
 		value += minSoFar;
 	}
+	value += 3*player_distance; // 3 arbitrarily chosen, needs some testing
 
 	return value;
 }

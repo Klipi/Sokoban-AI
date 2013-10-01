@@ -200,10 +200,12 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			break;
 	}
 	
+	if(!hasWallIn(position) && !hasBoxIn(position)){
+                            State newState (position,state.boxes);
+                            return new Node(newState,dir,this);
+                            }
 	if(!pushing_allowed){
         State newState (position,state.boxes);
-	    if(!hasWallIn(position) && !hasBoxIn(position))
-                            return new Node(newState,dir,this);
         return new Node (newState,'X',this);
         }
  

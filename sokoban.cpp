@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <queue>
 #include <list>
+#include <time.h>
 #include "sokoban.hpp"
 #include "globals.hpp"
 
@@ -123,12 +124,12 @@ void pushBoxes(vector<Node*>& nodes){
 				{
 					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
 					first = false;
-					tempNode = nodes[i]->getChild(directions[j]);
+					tempNode = nodes[i]->getChild(directions[j],true);
 				}
 				else
 				{
 					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-					nodes.push_back((nodes[i]->getChild(directions[j])));
+					nodes.push_back((nodes[i]->getChild(directions[j],true)));
 				}
 			}
 
@@ -343,6 +344,15 @@ void showBoard(std::vector<std::string> clearBoard, State state) {
 	std::cerr << std::endl;
 };
 
+void showSolution(std::vector<std::string> clearBoard, Node* node, string solution){
+     showBoard(clearBoard,node->state);
+     for(char & c : solution){
+                node = node->getChild(c,true);
+                showBoard(clearBoard,node->state);
+                }
+}
+
+//************NOT USED RIGHT NOW, TAKES TOO MUCH TIME************************//
 // Finds the lowest reachable position without moving boxes. Used to keep the hash table clean
 // (ie. player position is always the same unless something actually critical has happened)
 Node* findLowestPlayerPosition(Node* current){
@@ -394,16 +404,15 @@ Node* findLowestPlayerPosition(Node* current){
 
 // Returns true if a new element was added
 bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates, Node* node, int value){
-	Node* newNode = findLowestPlayerPosition(node);
 
-	if (knownStates.find(newNode->state) == knownStates.end())
+	if (knownStates.find(node->state) == knownStates.end())
 	{
-		knownStates.insert({newNode->state, value});
+		knownStates.insert({node->state, value});
 		return true;
 	}
 	else
 	{
-		knownStates[newNode->state] = value;
+		knownStates[node->state] = value;
 		return false;
 	}
 	
@@ -453,9 +462,19 @@ int main(int argc, const char **argv) {
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
+	
+	//clock_t start_clock = clock();
+    //clock_t t = start_clock;
+	//int counter = 0;
 
 	while(!frontier.empty())
 	{
+        /*if((clock()-t)/(double) CLOCKS_PER_SEC > 1){
+                                cerr << counter << endl;
+                                counter = 0;
+                                t = clock();
+                                }
+        counter++;*/
 		Node* current = frontier.top();
 		frontier.pop();
 		if (verbose) {
@@ -471,7 +490,6 @@ int main(int argc, const char **argv) {
 			showBoard(clearBoard, (current)->state);
 		}
 		if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
-
 		//knownStates[current->state] = 1;
 		if (debug > 1) cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = getNextSteps(clearBoard,current);
@@ -482,7 +500,9 @@ int main(int argc, const char **argv) {
 			if(isGoal(goals,(*i)->state))
 			{
 				std::string answer = getPath(*i);
+				//showSolution(clearBoard,start,answer);
 				std::cout << answer << std::endl;
+				//cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
 				return 0;
 			}
 

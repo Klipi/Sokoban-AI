@@ -16,6 +16,8 @@ bool isGoal(std::vector<Point> goal, State state);
 
 State findPathTo(State start, Point goal);
 
+void showSolution(std::vector<std::string>, State, std::string);
+
 std::string getPath(Node* node);
 
 std::vector<Node*> getNextSteps(std::vector<std::string>, Node *);

@@ -8,8 +8,6 @@
 #include "state.hpp"
 #include "node.hpp"
 
-std::vector<Node*> possibleSteps(std::vector<std::string> , Node *, bool);
-
 void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<std::string> &clearBoard);
 
 int hashState(State state);

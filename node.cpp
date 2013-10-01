@@ -154,7 +154,7 @@ bool Node::identifyDeadGroup(vector<Point> group, Point box){
 	}
 }
 // Returns a node object, where the player has moved one step to dir.
-Node* Node::getChild(char dir){
+Node* Node::getChild(char dir, bool pushing_allowed = true){
 	Point position = Point(state.player.x, state.player.y);
 	Point position2;
 
@@ -199,7 +199,14 @@ Node* Node::getChild(char dir){
 			position2 = position.left();
 			break;
 	}
-
+	
+	if(!pushing_allowed){
+        State newState (position,state.boxes);
+	    if(!hasWallIn(position) && !hasBoxIn(position))
+                            return new Node(newState,dir,this);
+        return new Node (newState,'X',this);
+        }
+ 
 	if (debug > 7) cerr << "Moving to " << (int)position.x << "," << (int)position.y << " to direction " << dir << endl;
 	if (debug > 7) cerr << "Box will move to " << (int)position2.x << "," << (int)position2.y << " to direction " << dir << endl;
 	// Stay in place and use 'X' to denote not moving

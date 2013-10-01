@@ -15,7 +15,7 @@ class Node {
 		bool hasWallIn(Point);
 		bool hasGoalIn(Point);
 		bool isFreePoint(Point);
-		Node* getChild(char);
+		Node* getChild(char, bool);
 		//bool identifyDeadBox(Node*, Point);
 		bool isBoxStuck(Point, bool);
 		bool isBoxStuck(Point);

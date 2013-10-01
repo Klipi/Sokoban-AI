@@ -69,7 +69,13 @@ vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
 
 		//cerr << "Pathfinding frontier has " << frontier.size() << " nodes." << endl;
 		knownStates[currentNode->state] = 1;
-		vector<Node*> children = possibleSteps(clearBoard, currentNode, true);
+		vector<Node*> children;
+		char directions[4] = {'L','R','U','D'};
+		for(size_t i=0; i<4; i++){
+                   Node* child = currentNode->getChild(directions[i],false);
+                   if(child->direction != 'X')
+                       children.push_back(child);
+                   }
 		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
 			if (knownStates.find((*i)->state) == knownStates.end())
@@ -159,68 +165,6 @@ vector<Node*> getNextSteps(vector<string> map, Node *current) {
 
 	return foundPaths;
 }
-
-std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current, bool avoidBoxes = false) {
-	// Find possible steps and put into vector. Johan
-	std::vector<Node*> possiblemoves;
-	int x = current->state.player.x;
-	int y = current->state.player.y;
-	int dx[4] = {1, -1, 0, 0};
-	int dy[4] = {0, 0, 1, -1};
-	char directions[4] = {'R','L','D','U'};
-
-	for(size_t i=0;i<4;i++)
-	{
-			Node* childstate = new Node();
-			Point new_pos;
-	        new_pos.x = x+dx[i];
-	        new_pos.y = y+dy[i];
-
-		// check if push is possible
-		// Which box is pushed (if any)
-		std::vector<Point>::iterator pushed_box = std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos);
-		if (pushed_box!=current->state.boxes.end())
-		{
-			if (avoidBoxes)
-				continue;
-
-			Point new_box_pos;
-			new_box_pos.x = x+2*dx[i];
-			new_box_pos.y = y+2*dy[i];
-
-			if(
-					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
-					(unsigned)(y+2*dy[i]) < map.size() && (unsigned)(x+2*dx[i]) < map[y+2*dy[i]].size() &&
-					map[y+2*dy[i]][x+2*dx[i]] != '#' && map[y+2*dy[i]][x+2*dx[i]] != '?' &&
-			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
-			{
-				childstate->state.player = new_pos;
-				childstate->state.boxes = current->state.boxes;
-				childstate->state.boxes[std::distance(current->state.boxes.begin(),pushed_box)] = new_box_pos;
-				std::sort(childstate->state.boxes.begin(), childstate->state.boxes.end());
-				childstate->direction = directions[i];
-				childstate->parent = current;
-				possiblemoves.push_back(childstate);
-			}
-		}
-
-		// check if move is possible
-		else if(
-				y+dy[i] > 0 && x+dx[i] > 0 &&
-				(unsigned)(y+dy[i]) < map.size() && (unsigned)(x+dx[i]) < map[y+dy[i]].size() &&
-				map[y+dy[i]][x+dx[i]] != '#')
-		{
-			childstate->state.player = new_pos;
-			childstate->state.boxes = current->state.boxes;
-			childstate->direction = directions[i];
-			childstate->parent = current;
-			possiblemoves.push_back(childstate);
-		}
-
-	}
-	return possiblemoves;
-};
-
 
 // Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
 void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard) {
@@ -382,13 +326,6 @@ std::string getPath(Node* node) {
 	return path;
 };
 
-// Not now lol
-State findPathTo(State start, Point goal) {
-	/* Find the path for the player to the goal point. Creates the child nodes
-	   and returning the last one if reached the goal TODO: Olli? */
-	return State();
-};
-
 // Sends the board to cerr (used for debugging)
 void showBoard(std::vector<std::string> clearBoard, State state) {
 	// PLayer position
@@ -426,7 +363,13 @@ Node* findLowestPlayerPosition(Node* current){
 
 		knownStates[current->state] = 1;
 		//cerr << "Finding next nodes." << endl;
-		std::vector<Node*> children = possibleSteps(clearBoard, newNode, true);
+		vector<Node*> children;
+		char directions[4] = {'L','R','U','D'};
+		for(size_t i=0; i<4; i++){
+                   Node* child = newNode->getChild(directions[i],false);
+                   if(child->direction != 'X')
+                       children.push_back(child);
+                   }
 		//cerr << "Search over. Children found:  " << children.size() << endl;
 		//cerr << "Printing children" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)

@@ -6,218 +6,9 @@
 #include <list>
 #include "sokoban.hpp"
 #include "globals.hpp"
+#include <time.h>
 
 using namespace std;
-
-// Returns the coordinates from which the given box can be pushed.
-vector<Point> getMovableSides(Point box, vector<string> map, Node *current){
-	vector<Point> sides;
-
-	if (!current->isBoxStuck(box, true)){
-		sides.push_back(box.left());
-		sides.push_back(box.right());
-	}
-
-	if (!current->isBoxStuck(box, false)){
-		sides.push_back(box.up());
-		sides.push_back(box.down());
-	}
-
-	return sides;
-}
-
-// Checks whether one of the targets has been reached.
-bool isSearchTarget(vector<Point> &goals, Node* node){
-	for (size_t i = 0; i < goals.size(); i++)
-	{
-		if (goals[i] == node->state.player)
-		{
-			goals.erase(goals.begin() + i);
-			return true;
-		}
-	}
-
-	return false;
-}
-
-// Finds a path to each of goals, where possible.
-vector<Node*> findPaths(vector<Point> goals, vector<string> map, Node *current){
-	vector<Node*> paths;
-	if(isSearchTarget(goals, current))
-	{
-		//cerr << "Start point is goal at " << (int)current->state.player.x << "," <<(int)current->state.player.y << endl;
-		paths.push_back(current);
-	}
-	// else
-	// {
-	// 	for (size_t i = 0; i < goals.size(); i++)
-	// 	{
-	// 		cerr << "Goal at " << (int)goals[i].x << "," <<(int)goals[i].y << endl;
-	// 	}
-	// }
-
-	unordered_map<State, int, StateHash, StateEqual> knownStates;
-	knownStates.insert({current->state, 1});
-	priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
-	frontier.push(current);
-
-	// Same BFS format as in main(). Will exhaust child nodes or find a path to all goals.
-	while(!frontier.empty() && goals.size() > 0)
-	{
-		Node* currentNode = frontier.top();
-		frontier.pop();
-
-		//cerr << "Pathfinding frontier has " << frontier.size() << " nodes." << endl;
-		knownStates[currentNode->state] = 1;
-		vector<Node*> children = possibleSteps(clearBoard, currentNode, true);
-		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
-		{
-			if (knownStates.find((*i)->state) == knownStates.end())
-			{
-				knownStates[(*i)->state] = 0;
-				frontier.push(*i);
-
-				if(isSearchTarget(goals, *i))
-				{
-					//cerr << "Found new path to goal at "  << (int)(*i)->state.player.x << "," <<(int)(*i)->state.player.y << endl;
-					paths.push_back(*i);
-				}
-			}
-		}
-	}
-
-	return paths;
-}
-
-
-void pushBoxes(vector<Node*>& nodes){
-	unordered_map<int, char> directions;
-	directions[0] = 'L';
-	directions[1] = 'R';
-	directions[2] = 'U';
-	directions[3] = 'D';
-
-
-	size_t originalSize = nodes.size();
-
-	for (size_t i = 0; i < originalSize; i++)
-	{
-		bool first = true;
-		if (debug > 3) cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
-		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
-		for (size_t j = 0; j < neighbours.size(); j++)
-		{
-			if (debug > 4) cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
-			if (nodes[i]->hasBoxIn(neighbours[j]))
-			{
-				if (debug > 5) cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
-				if (first)
-				{
-					if (debug > 6) cerr << "Pushing to " << directions[j] << endl;
-					first = false;
-					nodes[i] = nodes[i]->getChild(directions[j]);
-				}
-				else
-				{
-					if (debug > 6) cerr << "Pushing to " << directions[j] << endl;
-					nodes.push_back((nodes[i]->getChild(directions[j])));
-				}
-			}
-
-		}
-
-	}
-}
-
-// Given a node, returns the next nodes to be added to the search queue.
-vector<Node*> getNextSteps(vector<string> map, Node *current) {
-	//cerr << "No. of boxes: " << current->state.boxes.size() << endl;
-	// Aggregate "interesting" places for the pathfinding algorithm
-	vector<Point> nextToBox;
-	vector<Node*> foundPaths;
-	for (size_t i = 0; i < current->state.boxes.size(); i++)
-	{
-		Point box = current->state.boxes[i];
-		vector<Point> newPoints = getMovableSides(box, map, current);
-		
-		//if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end() && isBoxInfeasible(box, map, current))
-		//{
-			//cerr << "Stuck. Box #" << i << ": " << (int)box.x << ", " << (int)box.y << endl;
-		//	return foundPaths;
-		//}
-		nextToBox.insert(nextToBox.end(), newPoints.begin(), newPoints.end());
-	}
-	if (debug > 2) cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
-	
-	foundPaths = findPaths(nextToBox, map, current);
-	if (debug > 2) cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
-	
-	pushBoxes(foundPaths);
-	if (debug > 2) cerr << "Pushing done." << endl;
-
-	return foundPaths;
-}
-
-std::vector<Node*> possibleSteps(std::vector<std::string> map, Node *current, bool avoidBoxes = false) {
-	// Find possible steps and put into vector. Johan
-	std::vector<Node*> possiblemoves;
-	int x = current->state.player.x;
-	int y = current->state.player.y;
-	int dx[4] = {1, -1, 0, 0};
-	int dy[4] = {0, 0, 1, -1};
-	char directions[4] = {'R','L','D','U'};
-
-	for(size_t i=0;i<4;i++)
-	{
-			Node* childstate = new Node();
-			Point new_pos;
-	        new_pos.x = x+dx[i];
-	        new_pos.y = y+dy[i];
-
-		// check if push is possible
-		// Which box is pushed (if any)
-		std::vector<Point>::iterator pushed_box = std::find(current->state.boxes.begin(), current->state.boxes.end(), new_pos);
-		if (pushed_box!=current->state.boxes.end())
-		{
-			if (avoidBoxes)
-				continue;
-
-			Point new_box_pos;
-			new_box_pos.x = x+2*dx[i];
-			new_box_pos.y = y+2*dy[i];
-
-			if(
-					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
-					(unsigned)(y+2*dy[i]) < map.size() && (unsigned)(x+2*dx[i]) < map[y+2*dy[i]].size() &&
-					map[y+2*dy[i]][x+2*dx[i]] != '#' && map[y+2*dy[i]][x+2*dx[i]] != '?' &&
-			      	  	(std::find(current->state.boxes.begin(), current->state.boxes.end(), new_box_pos) == current->state.boxes.end()))
-			{
-				childstate->state.player = new_pos;
-				childstate->state.boxes = current->state.boxes;
-				childstate->state.boxes[std::distance(current->state.boxes.begin(),pushed_box)] = new_box_pos;
-				std::sort(childstate->state.boxes.begin(), childstate->state.boxes.end());
-				childstate->direction = directions[i];
-				childstate->parent = current;
-				possiblemoves.push_back(childstate);
-			}
-		}
-
-		// check if move is possible
-		else if(
-				y+dy[i] > 0 && x+dx[i] > 0 &&
-				(unsigned)(y+dy[i]) < map.size() && (unsigned)(x+dx[i]) < map[y+dy[i]].size() &&
-				map[y+dy[i]][x+dx[i]] != '#')
-		{
-			childstate->state.player = new_pos;
-			childstate->state.boxes = current->state.boxes;
-			childstate->direction = directions[i];
-			childstate->parent = current;
-			possiblemoves.push_back(childstate);
-		}
-
-	}
-	return possiblemoves;
-};
 
 
 // Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
@@ -226,7 +17,7 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	// Filip
 	for (uint8_t i = 0; i<map.size();++i)
 	{
-		int x;
+		unsigned int x;
 		int p=0;
 
 		clearBoard.push_back(map[i]);
@@ -273,11 +64,10 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 
 	// Vertical
 	// There is never more than like 50 cells in the maps given
-	bool edge, LR, UD;
+	bool LR, UD;
 	size_t combo = -1;
 	for (size_t x = 1; x < 55; x++)
 	{
-		edge = false;
 		combo = 0;
 		for (size_t y = 1; y < clearBoard.size(); y++)
 		{
@@ -311,7 +101,6 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	// Horisontal and corners
 	for (size_t y = 1; y < clearBoard.size(); y++)
 	{
-		edge = false;
 		combo = 0;
 		for (size_t x = 1; x < clearBoard[y].size(); x++)
 		{
@@ -355,9 +144,9 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 };
 
-bool isGoal(std::vector<Point> goal, State state) {
+bool isGoal(const std::vector<Point>& goal, State& state) {
 	// Assume goal and boxes in state is sorted
-
+	std::sort(state.boxes.begin(),state.boxes.end());
 	for (size_t i = 0; i < state.boxes.size(); i++)
 	{
 		if (goal[i] != state.boxes[i])
@@ -381,18 +170,18 @@ std::string getPath(Node* node) {
 };
 
 // Not now lol
-State findPathTo(State start, Point goal) {
+State findPathTo(const State start, const Point goal) {
 	/* Find the path for the player to the goal point. Creates the child nodes
 	   and returning the last one if reached the goal TODO: Olli? */
 	return State();
 };
 
 // Sends the board to cerr (used for debugging)
-void showBoard(std::vector<std::string> clearBoard, State state) {
+void showBoard(std::vector<std::string> &clearBoard, const State& state) {
 	// PLayer position
 	clearBoard[state.player.y][state.player.x] = clearBoard[state.player.y][state.player.x] == '.' ? '+' : '@';
 
-	for(std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
+	for(std::vector<Point>::const_iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
 	{
 		clearBoard[i->y][i->x] = clearBoard[i->y][i->x] == '.' ? '*' : '$';
 	}
@@ -408,7 +197,7 @@ void showBoard(std::vector<std::string> clearBoard, State state) {
 // (ie. player position is always the same unless something actually critical has happened)
 Node* findLowestPlayerPosition(Node* current){
 
-	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	unordered_map<State, int, StateHash> knownStates;
 	Node* start = current;
 	Node* lowest = start;
 	knownStates.insert({start->state, 0});
@@ -424,7 +213,7 @@ Node* findLowestPlayerPosition(Node* current){
 
 		knownStates[current->state] = 1;
 		//cerr << "Finding next nodes." << endl;
-		std::vector<Node*> children = possibleSteps(clearBoard, newNode, true);
+		std::vector<Node*> children = newNode->possibleSteps(clearBoard, true);
 		//cerr << "Search over. Children found:  " << children.size() << endl;
 		//cerr << "Printing children" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -448,7 +237,7 @@ Node* findLowestPlayerPosition(Node* current){
 }
 
 // Returns true if a new element was added
-bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates, Node* node, int value){
+bool addToHashMap(unordered_map<State, int, StateHash>& knownStates, Node* node, int value){
 	Node* newNode = findLowestPlayerPosition(node);
 
 	if (knownStates.find(newNode->state) == knownStates.end())
@@ -467,6 +256,7 @@ bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates,
 int main(int argc, const char **argv) {
 	bool verbose = false;
 	debug = 0;
+	bool time = true;
 	for (int i = 1; i < argc; ++i)
 	{
 		std::string param(argv[i]);
@@ -481,19 +271,19 @@ int main(int argc, const char **argv) {
 			else
 				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
 		}
+		else if(param == "time" || param == "t")
+			time=true;
 		else
 		{
 			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
 			return -1;
 		}
 	}
-	cerr << debug << endl;
-	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	//cerr << debug << endl;
+	unordered_map<State, int, StateHash> knownStates;
 	Node* start = new Node();
 	
-
 	goals = std::vector<Point>();
-
 
 	// Read the board
 	std::vector<std::string> board;
@@ -502,6 +292,7 @@ int main(int argc, const char **argv) {
 
 	parseBoard(board, start, goals, clearBoard);
 	sort(goals.begin(), goals.end());
+	clock_t begin = clock();
 	addToHashMap(knownStates, start, 0);
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
@@ -519,7 +310,7 @@ int main(int argc, const char **argv) {
 
 		//knownStates[current->state] = 1;
 		if (debug > 1) cerr << "Finding next nodes." << endl;
-		std::vector<Node*> children = getNextSteps(clearBoard,current);
+		std::vector<Node*> children = current->getNextSteps(clearBoard);
 		if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
 		//cerr << "Printing children" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -528,6 +319,11 @@ int main(int argc, const char **argv) {
 			{
 				std::string answer = getPath(*i);
 				std::cout << answer << std::endl;
+				if(time)
+				{
+					clock_t t = clock() - begin;
+					printf ("%f seconds.\n",((float)t)/CLOCKS_PER_SEC);
+				}
 				return 0;
 			}
 
@@ -540,5 +336,10 @@ int main(int argc, const char **argv) {
 
 	}
 
+	if(time)
+	{
+		clock_t t = clock() - begin;
+		printf ("%f seconds.\n",((float)t)/CLOCKS_PER_SEC);
+	}
 	return 0;
 }

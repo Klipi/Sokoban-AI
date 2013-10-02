@@ -32,11 +32,11 @@ class Point {
 
         Point(uint8_t px, uint8_t py): x(px), y(py){}
 
-        Point left();
-        Point right();
-        Point up();
-        Point down();
-        std::vector<Point> getNeighbours();
+        Point left() const;
+        Point right() const;
+        Point up() const;
+        Point down() const;
+        std::vector<Point> getNeighbours() const;
 };
 
 #endif

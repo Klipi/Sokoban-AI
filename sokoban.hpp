@@ -8,18 +8,16 @@
 #include "state.hpp"
 #include "node.hpp"
 
-std::vector<Node*> possibleSteps(std::vector<std::string> , Node *, bool);
 
 void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<std::string> &clearBoard);
 
-int hashState(State state);
+int hashState(const State& state);
 
-bool isGoal(std::vector<Point> goal, State state);
+bool isGoal(const std::vector<Point>& goal, State& state);
 
-State findPathTo(State start, Point goal);
+State findPathTo(const State& start, const Point& goal);
 
 std::string getPath(Node* node);
 
-std::vector<Node*> getNextSteps(std::vector<std::string>, Node *);
 
 #endif

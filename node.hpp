@@ -10,20 +10,29 @@ class Node {
 		char direction;
 		Node *parent;
 
-		bool hasBoxIn(Point);
-		bool hasWallIn(Point);
-		bool isFreePoint(Point);
+		bool hasBoxIn(Point&);
+		bool hasWallIn(Point&);
+		bool isFreePoint(Point&);
 		Node* getChild(char);
-		bool identifyDeadBox(Node*, Point);
-		bool isBoxStuck(Point, bool);
-		bool isBoxStuck(Point);
-		bool identifyDeadBox(Point);
+		bool isBoxStuck(const Point&, bool) const;
+		bool isBoxStuck(const Point&) const;
+		bool identifyDeadBox(Point&);
 
 		Node():direction(' '),parent(NULL){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};
+
+		std::vector<Node*> possibleSteps(const std::vector<std::string>& , bool);
+		std::vector<Node*> getNextSteps(const std::vector<std::string>&);
+
+	private:
+		std::vector<Point> getMovableSides(const Point& box, const std::vector<std::string> &map);
+		std::vector<Node*> findPaths(std::vector<Point> &goals, const std::vector<std::string> &map);
+		bool isSearchTarget(std::vector<Point> &goals);
+		void pushBoxes(std::vector<Node*>& nodes);
+
 };
 
-int heuristic(State);
+int heuristic(const State&);
 
 struct NodeCompare
 {

@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <queue>
 #include <list>
+#include <time.h>
 #include "sokoban.hpp"
 #include "globals.hpp"
-#include <time.h>
 
 using namespace std;
 
@@ -169,13 +169,6 @@ std::string getPath(Node* node) {
 	return path;
 };
 
-// Not now lol
-State findPathTo(const State start, const Point goal) {
-	/* Find the path for the player to the goal point. Creates the child nodes
-	   and returning the last one if reached the goal TODO: Olli? */
-	return State();
-};
-
 // Sends the board to cerr (used for debugging)
 void showBoard(std::vector<std::string> &clearBoard, const State& state) {
 	// PLayer position
@@ -193,6 +186,15 @@ void showBoard(std::vector<std::string> &clearBoard, const State& state) {
 	std::cerr << std::endl;
 };
 
+void showSolution(std::vector<std::string> clearBoard, Node* node, string solution){
+     showBoard(clearBoard,node->state);
+     for(char & c : solution){
+                node = node->getChild(c,true);
+                showBoard(clearBoard,node->state);
+                }
+}
+
+//************NOT USED RIGHT NOW, TAKES TOO MUCH TIME************************//
 // Finds the lowest reachable position without moving boxes. Used to keep the hash table clean
 // (ie. player position is always the same unless something actually critical has happened)
 Node* findLowestPlayerPosition(Node* current){
@@ -213,7 +215,13 @@ Node* findLowestPlayerPosition(Node* current){
 
 		knownStates[current->state] = 1;
 		//cerr << "Finding next nodes." << endl;
-		std::vector<Node*> children = newNode->possibleSteps(clearBoard, true);
+		vector<Node*> children;
+		char directions[4] = {'L','R','U','D'};
+		for(size_t i=0; i<4; i++){
+                   Node* child = newNode->getChild(directions[i],false);
+                   if(child->direction != 'X')
+                       children.push_back(child);
+                   }
 		//cerr << "Search over. Children found:  " << children.size() << endl;
 		//cerr << "Printing children" << endl;
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -238,16 +246,15 @@ Node* findLowestPlayerPosition(Node* current){
 
 // Returns true if a new element was added
 bool addToHashMap(unordered_map<State, int, StateHash>& knownStates, Node* node, int value){
-	Node* newNode = findLowestPlayerPosition(node);
 
-	if (knownStates.find(newNode->state) == knownStates.end())
+	if (knownStates.find(node->state) == knownStates.end())
 	{
-		knownStates.insert({newNode->state, value});
+		knownStates.insert({node->state, value});
 		return true;
 	}
 	else
 	{
-		knownStates[newNode->state] = value;
+		knownStates[node->state] = value;
 		return false;
 	}
 	
@@ -297,9 +304,19 @@ int main(int argc, const char **argv) {
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
+	
+	//clock_t start_clock = clock();
+    //clock_t t = start_clock;
+	//int counter = 0;
 
 	while(!frontier.empty())
 	{
+        /*if((clock()-t)/(double) CLOCKS_PER_SEC > 1){
+                                cerr << counter << endl;
+                                counter = 0;
+                                t = clock();
+                                }
+        counter++;*/
 		Node* current = frontier.top();
 		frontier.pop();
 		if (verbose) {
@@ -307,7 +324,6 @@ int main(int argc, const char **argv) {
 			showBoard(clearBoard, (current)->state);
 		}
 		if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
-
 		//knownStates[current->state] = 1;
 		if (debug > 1) cerr << "Finding next nodes." << endl;
 		std::vector<Node*> children = current->getNextSteps(clearBoard);
@@ -318,6 +334,7 @@ int main(int argc, const char **argv) {
 			if(isGoal(goals,(*i)->state))
 			{
 				std::string answer = getPath(*i);
+				//showSolution(clearBoard,start,answer);
 				std::cout << answer << std::endl;
 				if(time)
 				{

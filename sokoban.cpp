@@ -12,7 +12,7 @@ using namespace std;
 
 
 // Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard) {
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard, bool backward) {
 	// Parse the board and save the current state into currentstate and all possible goal states in the vector
 	// Filip
 	for (uint8_t i = 0; i<map.size();++i)
@@ -25,7 +25,10 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		while((x=map[i].find('$',p)) < std::string::npos)
 		{
 			p=x+1;
-			root->state.boxes.push_back(Point(x,i));
+			if(backward)
+				goal.push_back(Point(x,i));
+			else
+				root->state.boxes.push_back(Point(x,i));
 			clearBoard[i][x] = ' ';
 		}
 
@@ -33,7 +36,10 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		while((x=map[i].find('.',p))<std::string::npos)
 		{
 			p=x+1;
-			goal.push_back(Point(x,i));
+			if(backward)
+				root->state.boxes.push_back(Point(x,i));
+			else
+				goal.push_back(Point(x,i));
 		}
 
 		p=0;
@@ -54,7 +60,10 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		else if((x=map[i].find('+')) < std::string::npos)
 		{
 			root->state.player = Point(x,i);
-			goal.push_back(Point(x,i));
+			if(backward)
+				root->state.boxes.push_back(Point(x,i));
+			else
+				goal.push_back(Point(x,i));
 			map[i][x] = '.';
 			clearBoard[i][x] = '.';
 		}
@@ -263,7 +272,8 @@ bool addToHashMap(unordered_map<State, int, StateHash>& knownStates, Node* node,
 int main(int argc, const char **argv) {
 	bool verbose = false;
 	debug = 0;
-	bool time = true;
+	bool time = false;
+	bool backward = false;
 	for (int i = 1; i < argc; ++i)
 	{
 		std::string param(argv[i]);
@@ -280,6 +290,8 @@ int main(int argc, const char **argv) {
 		}
 		else if(param == "time" || param == "t")
 			time=true;
+		else if(param == "backward" || param == "b")
+			backward = true;
 		else
 		{
 			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
@@ -288,7 +300,7 @@ int main(int argc, const char **argv) {
 	}
 	//cerr << debug << endl;
 	unordered_map<State, int, StateHash> knownStates;
-	Node* start = new Node();
+	Node* start = backward ? new BackwardNode(): new Node();
 	
 	goals = std::vector<Point>();
 
@@ -297,7 +309,7 @@ int main(int argc, const char **argv) {
 	for (std::string line; std::getline(std::cin, line);)
 		board.push_back(line);
 
-	parseBoard(board, start, goals, clearBoard);
+	parseBoard(board, start, goals, clearBoard, backward);
 	sort(goals.begin(), goals.end());
 	clock_t begin = clock();
 	addToHashMap(knownStates, start, 0);

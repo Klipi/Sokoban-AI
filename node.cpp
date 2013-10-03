@@ -101,7 +101,7 @@ bool Node::isFreePoint(const Point& place){
 	return !(hasBoxIn(place) || hasWallIn(place) || clearBoard[place.y][place.x] == '?');
 }
 
-vector<Point> Node::getAdjacentBoxGroup(const Point& box)
+std::vector<Point> Node::getAdjacentBoxGroup(const Point& box)
 {
 	if (debug > 8) cerr << "Finding unified group of boxes next to " << (int)box.x << "," << (int)box.y << endl;
 	vector<Point> group;
@@ -244,63 +244,6 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 
 	return child;
 }
-
-std::vector<Node*> Node::possibleSteps(const std::vector<std::string>& map, bool avoidBoxes = false)
-{
-	// Find possible steps and put into vector. Johan
-	std::vector<Node*> possiblemoves;
-	int x = state.player.x;
-	int y = state.player.y;
-	int dx[4] = {1, -1, 0, 0};
-	int dy[4] = {0, 0, 1, -1};
-	char directions[4] = {'R','L','D','U'};
-
-	for(size_t i=0;i<4;i++)	{
-			Node* childstate = new Node();
-			Point new_pos(x+dx[i],y+dy[i]);
-
-		// check if push is possible
-		// Which box is pushed (if any)
-		std::vector<Point>::iterator pushed_box = std::find(state.boxes.begin(), state.boxes.end(), new_pos);
-		if (pushed_box!=state.boxes.end())
-		{
-			if (avoidBoxes)
-				continue;
-
-			Point new_box_pos(x+2*dx[i], y+2*dy[i]);
-
-			if(
-					y+2*dy[i] > 0 && x+2*dx[i] > 0 &&
-					(unsigned)(y+2*dy[i]) < map.size() && (unsigned)(x+2*dx[i]) < map[y+2*dy[i]].size() &&
-					map[y+2*dy[i]][x+2*dx[i]] != '#' && map[y+2*dy[i]][x+2*dx[i]] != '?' &&
-			      	  	(std::find(state.boxes.begin(), state.boxes.end(), new_box_pos) == state.boxes.end()))
-			{
-				childstate->state.player = new_pos;
-				childstate->state.boxes = state.boxes;
-				childstate->state.boxes[std::distance(state.boxes.begin(),pushed_box)] = new_box_pos;
-				std::sort(childstate->state.boxes.begin(), childstate->state.boxes.end());
-				childstate->direction = directions[i];
-				childstate->parent = this;
-				possiblemoves.push_back(childstate);
-			}
-		}
-
-		// check if move is possible
-		else if(
-				y+dy[i] > 0 && x+dx[i] > 0 &&
-				(unsigned)(y+dy[i]) < map.size() && (unsigned)(x+dx[i]) < map[y+dy[i]].size() &&
-				map[y+dy[i]][x+dx[i]] != '#')
-		{
-			childstate->state.player = new_pos;
-			childstate->state.boxes = state.boxes;
-			childstate->direction = directions[i];
-			childstate->parent = this;
-			possiblemoves.push_back(childstate);
-		}
-
-	}
-	return possiblemoves;
-	}
 	
 // Given a node, returns the next nodes to be added to the search queue.
 vector<Node*> Node::getNextSteps(const vector<string> &map)
@@ -359,61 +302,61 @@ vector<Point> Node::getMovableSides(const Point& box, const vector<string> &map)
 vector<Node*> Node::findPaths(vector<Point> &goals, const vector<string> &map)
 {
 	vector<Node*> paths;
-		if(isSearchTarget(goals))
-		{
-			//cerr << "Start point is goal at " << (int)current->state.player.x << "," <<(int)current->state.player.y << endl;
-			paths.push_back(this);
+	if(isSearchTarget(goals))
+	{
+		//cerr << "Start point is goal at " << (int)current->state.player.x << "," <<(int)current->state.player.y << endl;
+		paths.push_back(this);
+	}
+	// else
+	// {
+	// 	for (size_t i = 0; i < goals.size(); i++)
+	// 	{
+	// 		cerr << "Goal at " << (int)goals[i].x << "," <<(int)goals[i].y << endl;
+	// 	}
+	// }
+
+
+	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	knownStates.insert({state, 1});
+	priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
+	frontier.push(this);
+
+
+	// Same BFS format as in main(). Will exhaust child nodes or find a path to all goals.
+	while(!frontier.empty() && goals.size() > 0)
+	{
+		Node* currentNode = frontier.top();
+		frontier.pop();
+
+
+		//cerr << "Pathfinding frontier has " << frontier.size() << " nodes." << endl;
+		knownStates[currentNode->state] = 1;
+		vector<Node*> children;
+		char directions[4] = {'L','R','U','D'};
+		for(size_t i=0; i<4; i++){
+			Node* child = currentNode->getChild(directions[i],false);
+			if(child->direction != 'X')
+				children.push_back(child);
 		}
-		// else
-		// {
-		// 	for (size_t i = 0; i < goals.size(); i++)
-		// 	{
-		// 		cerr << "Goal at " << (int)goals[i].x << "," <<(int)goals[i].y << endl;
-		// 	}
-		// }
-
-
-		unordered_map<State, int, StateHash, StateEqual> knownStates;
-		knownStates.insert({state, 1});
-		priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
-		frontier.push(this);
-
-
-		// Same BFS format as in main(). Will exhaust child nodes or find a path to all goals.
-		while(!frontier.empty() && goals.size() > 0)
+		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			Node* currentNode = frontier.top();
-			frontier.pop();
-
-
-			//cerr << "Pathfinding frontier has " << frontier.size() << " nodes." << endl;
-			knownStates[currentNode->state] = 1;
-			vector<Node*> children;
-			char directions[4] = {'L','R','U','D'};
-			for(size_t i=0; i<4; i++){
-	                   Node* child = currentNode->getChild(directions[i],false);
-	                   if(child->direction != 'X')
-	                       children.push_back(child);
-	                   }
-			for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)
+			if (knownStates.find((*i)->state) == knownStates.end())
 			{
-				if (knownStates.find((*i)->state) == knownStates.end())
+				knownStates[(*i)->state] = 0;
+				frontier.push(*i);
+
+
+				if((*i)->isSearchTarget(goals))
 				{
-					knownStates[(*i)->state] = 0;
-					frontier.push(*i);
-
-
-					if((*i)->isSearchTarget(goals))
-					{
-						//cerr << "Found new path to goal at "  << (int)(*i)->state.player.x << "," <<(int)(*i)->state.player.y << endl;
-						paths.push_back(*i);
-					}
+					//cerr << "Found new path to goal at "  << (int)(*i)->state.player.x << "," <<(int)(*i)->state.player.y << endl;
+					paths.push_back(*i);
 				}
 			}
 		}
+	}
 
 
-		return paths;
+	return paths;
 
 }
 
@@ -434,47 +377,56 @@ bool Node::isSearchTarget(vector<Point> &goals)
 
 void Node::pushBoxes(std::vector<Node*>& nodes){
 	unordered_map<int, char> directions;
-		directions[0] = 'L';
-		directions[1] = 'R';
-		directions[2] = 'U';
-		directions[3] = 'D';
+	directions[0] = 'L';
+	directions[1] = 'R';
+	directions[2] = 'U';
+	directions[3] = 'D';
 
+	size_t originalSize = nodes.size();
 
-
-
-		size_t originalSize = nodes.size();
-
-
-		for (size_t i = 0; i < originalSize; i++)
+	for (size_t i = 0; i < originalSize; i++)
+	{
+		Node* tempNode;
+		bool first = true;
+		if (debug > 3) cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
+		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
+		for (size_t j = 0; j < neighbours.size(); j++)
 		{
-			Node* tempNode;
-			bool first = true;
-			if (debug > 3) cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
-			vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
-			for (size_t j = 0; j < neighbours.size(); j++)
+			if (debug > 4) cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
+			if (nodes[i]->hasBoxIn(neighbours[j]))
 			{
-				if (debug > 4) cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
-				if (nodes[i]->hasBoxIn(neighbours[j]))
+
+
+				if (debug > 5) cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
+				if (first)
 				{
-
-
-					if (debug > 5) cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
-					if (first)
-					{
-						if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-						first = false;
-						tempNode = nodes[i]->getChild(directions[j],true);
-					}
-					else
-					{
-						if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-						nodes.push_back((nodes[i]->getChild(directions[j],true)));
-					}
+					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
+					first = false;
+					tempNode = nodes[i]->getChild(directions[j],true);
 				}
-
-
+				else
+				{
+					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
+					nodes.push_back((nodes[i]->getChild(directions[j],true)));
+				}
 			}
-			nodes[i] = tempNode;
+
+
 		}
+		nodes[i] = tempNode;
+	}
+
+}
+
+vector<Node*> BackwardNode::getNextSteps(const vector<string> &map)
+{
+	//some implementation would be good
+	std::vector<Point> pMoves = state.player.getNeighbours();
+
+	//cerr << "No. of boxes: " << current->state.boxes.size() << endl;
+	// Aggregate "interesting" places for the pathfinding algorithm
+	vector<Node*> foundPaths;
+
+	return foundPaths;
 
 }

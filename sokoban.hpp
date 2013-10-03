@@ -8,7 +8,7 @@
 #include "state.hpp"
 #include "node.hpp"
 
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<std::string> &clearBoard);
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<std::string> &clearBoard, bool backward);
 
 int hashState(const State& state);
 

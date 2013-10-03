@@ -11,6 +11,8 @@ class Node {
 		char direction;
 		Node *parent;
 
+		virtual ~Node(){};
+
 		bool hasBoxIn(const Point&);
 		bool hasWallIn(const Point&);
 		bool isFreePoint(const Point&);
@@ -26,8 +28,7 @@ class Node {
 		Node():direction(' '),parent(NULL){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};
 
-		std::vector<Node*> possibleSteps(const std::vector<std::string>& , bool);
-		std::vector<Node*> getNextSteps(const std::vector<std::string>&);
+		virtual std::vector<Node*> getNextSteps(const std::vector<std::string>&);
 
 	private:
 		std::vector<Point> getMovableSides(const Point& box, const std::vector<std::string> &map);
@@ -47,4 +48,10 @@ struct NodeCompare
 	}
 };
 
+class BackwardNode : public Node
+{
+
+	virtual std::vector<Node*> getNextSteps(const std::vector<std::string>&);
+
+};
 #endif

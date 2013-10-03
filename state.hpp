@@ -9,10 +9,7 @@
 #include "point.hpp"
 #include <algorithm>
 
-struct IState{
-	virtual ~IState(){}
-};
-struct State : public IState{
+struct State{
 	Point player;
 	std::vector<Point> boxes;
 

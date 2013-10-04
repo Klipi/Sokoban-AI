@@ -33,13 +33,16 @@ void pushBoxes(vector<Node*>& nodes){
 				if (first)
 				{
 					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-					first = false;
 					tempNode = nodes[i]->getChild(directions[j],true);
+					if(tempNode != NULL)
+                        first = false;
 				}
 				else
 				{
 					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-					nodes.push_back((nodes[i]->getChild(directions[j],true)));
+					Node* child = nodes[i]->getChild(directions[j],true);
+					if(child != NULL)
+					    nodes.push_back(child);
 				}
 			}
 
@@ -209,7 +212,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.y <= 1)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return new Node(state, 'X', this);
+				return NULL;
 			}
 			position = position.up();
 			position2 = position.up();
@@ -218,7 +221,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.x >= clearBoard[position.y].size() - 2)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return new Node(state, 'X', this);
+				return NULL;
 			}
 			position = position.right();
 			position2 = position.right();
@@ -227,7 +230,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.y >= clearBoard.size() - 2)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return new Node(state, 'X', this);
+				return NULL;
 			}
 			position = position.down();
 			position2 = position.down();
@@ -236,7 +239,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.x <= 1)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return new Node(state, 'X', this);
+				return NULL;
 			}
 			position = position.left();
 			position2 = position.left();
@@ -249,7 +252,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
                             }
 	if(!pushing_allowed){
         State newState (position,state.boxes);
-        return new Node (newState,'X',this);
+        return NULL;
         }
  
 	if (debug > 7) cerr << "Moving to " << (int)position.x << "," << (int)position.y << " to direction " << dir << endl;
@@ -259,7 +262,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 	{
 		if (debug > 7) cerr << "Wall or blocked box ?!?!?" << endl;
 		if (debug > 7) cerr << "Wall? " << hasWallIn(position) << endl;
-		return new Node(state, 'X', this);
+		return NULL;
 	}
 
 	vector<Point>::iterator pushed_box = find(state.boxes.begin(), state.boxes.end(), position);
@@ -280,7 +283,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 	if (!child->hasGoalIn(newBoxes[index]) && child->identifyDeadGroup(child->getAdjacentBoxGroup(newBoxes[index]), newBoxes[index]))
 	{
 		if (debug > 7) cerr << "Deadlock found with box at " << (int)position2.x << "," << (int)position2.y << endl;
-		return new Node(state, 'X', this);
+		return NULL;
 	}
 	
 	return child;

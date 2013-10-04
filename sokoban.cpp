@@ -163,8 +163,7 @@ std::string getPath(Node* node) {
 	std::string path;
 	Node *current = node;
 	while(current->parent != NULL){
-		if (current->direction != 'X')
-			path.insert(path.begin(),current->direction);
+        path.insert(path.begin(),current->direction);
 		current = current->parent;
 	}
 	return path;
@@ -220,7 +219,7 @@ Node* findLowestPlayerPosition(Node* current){
 		char directions[4] = {'L','R','U','D'};
 		for(size_t i=0; i<4; i++){
                    Node* child = newNode->getChild(directions[i],false);
-                   if(child->direction != 'X')
+                   if(child != NULL)
                        children.push_back(child);
                    }
 		//cerr << "Search over. Children found:  " << children.size() << endl;

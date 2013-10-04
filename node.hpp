@@ -25,6 +25,12 @@ class Node {
 
 		Node():direction(' '),parent(NULL){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};
+
+		std::vector<Node*> getNextSteps(std::vector<std::string> map);
+		std::vector<Point> getMovableSides(Point box, std::vector<std::string> map);
+		std::vector<Node*> findPaths(std::vector<Point> goals, std::vector<std::string> map);
+		bool isSearchTarget(std::vector<Point> &goals);
+
 };
 
 int heuristic(State);

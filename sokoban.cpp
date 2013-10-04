@@ -147,7 +147,6 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 
 bool isGoal(std::vector<Point> goal, State state) {
 	// Assume goal and boxes in state is sorted
-
 	for (size_t i = 0; i < state.boxes.size(); i++)
 	{
 		if (goal[i] != state.boxes[i])
@@ -219,7 +218,7 @@ Node* findLowestPlayerPosition(Node* current){
 		char directions[4] = {'L','R','U','D'};
 		for(size_t i=0; i<4; i++){
                    Node* child = newNode->getChild(directions[i],false);
-                   if(child != NULL)
+                   if(child != 0)
                        children.push_back(child);
                    }
 		//cerr << "Search over. Children found:  " << children.size() << endl;

@@ -7,20 +7,17 @@
 
 using namespace std;
 
-void pushBoxes(vector<Node*>& nodes){
+vector<Node*> pushBoxes(vector<Node*> nodes){
 	unordered_map<int, char> directions;
 	directions[0] = 'L';
 	directions[1] = 'R';
 	directions[2] = 'U';
 	directions[3] = 'D';
+	vector<Node*> pushed;
 
-
-	size_t originalSize = nodes.size();
-
-	for (size_t i = 0; i < originalSize; i++)
+	for (size_t i = 0; i < nodes.size(); i++)
 	{
 		Node* tempNode;
-		bool first = true;
 		if (debug > 3) cerr << "Push #" << i << " from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << endl;
 		vector<Point> neighbours = nodes[i]->state.player.getNeighbours();
 		for (size_t j = 0; j < neighbours.size(); j++)
@@ -28,27 +25,16 @@ void pushBoxes(vector<Node*>& nodes){
 			if (debug > 4) cerr << "Looking at direction " << directions[j] << " and point " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
 			if (nodes[i]->hasBoxIn(neighbours[j]))
 			{
-
 				if (debug > 5) cerr << "Found box in " << (int)neighbours[j].x << "," << (int)neighbours[j].y << endl;
-				if (first)
-				{
-					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-					tempNode = nodes[i]->getChild(directions[j],true);
-					if(tempNode != NULL)
-                        first = false;
-				}
-				else
-				{
-					if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
-					Node* child = nodes[i]->getChild(directions[j],true);
-					if(child != NULL)
-					    nodes.push_back(child);
-				}
+				if (debug > 6) cerr << "Pushing from point " << (int)nodes[i]->state.player.x << "," << (int)nodes[i]->state.player.y << " to " << directions[j] << endl;
+				Node* child = nodes[i]->getChild(directions[j],true);
+				if(child != 0)
+                    pushed.push_back(child);
 			}
 
 		}
-		nodes[i] = tempNode;
 	}
+	return pushed;
 }
 
 int distance(Point p1, Point p2)
@@ -212,7 +198,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.y <= 1)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return NULL;
+				return 0;
 			}
 			position = position.up();
 			position2 = position.up();
@@ -221,7 +207,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.x >= clearBoard[position.y].size() - 2)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return NULL;
+				return 0;
 			}
 			position = position.right();
 			position2 = position.right();
@@ -230,7 +216,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.y >= clearBoard.size() - 2)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return NULL;
+				return 0;
 			}
 			position = position.down();
 			position2 = position.down();
@@ -239,7 +225,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			if (position.x <= 1)
 			{
 				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
-				return NULL;
+				return 0;
 			}
 			position = position.left();
 			position2 = position.left();
@@ -252,7 +238,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
                             }
 	if(!pushing_allowed){
         State newState (position,state.boxes);
-        return NULL;
+        return 0;
         }
  
 	if (debug > 7) cerr << "Moving to " << (int)position.x << "," << (int)position.y << " to direction " << dir << endl;
@@ -262,7 +248,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 	{
 		if (debug > 7) cerr << "Wall or blocked box ?!?!?" << endl;
 		if (debug > 7) cerr << "Wall? " << hasWallIn(position) << endl;
-		return NULL;
+		return 0;
 	}
 
 	vector<Point>::iterator pushed_box = find(state.boxes.begin(), state.boxes.end(), position);
@@ -283,7 +269,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 	if (!child->hasGoalIn(newBoxes[index]) && child->identifyDeadGroup(child->getAdjacentBoxGroup(newBoxes[index]), newBoxes[index]))
 	{
 		if (debug > 7) cerr << "Deadlock found with box at " << (int)position2.x << "," << (int)position2.y << endl;
-		return NULL;
+		return 0;
 	}
 	
 	return child;
@@ -312,10 +298,7 @@ vector<Node*> Node::getNextSteps(vector<string> map) {
 	foundPaths = findPaths(nextToBox, map);
 	if (debug > 2) cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
 
-	pushBoxes(foundPaths);
-	if (debug > 2) cerr << "Pushing done." << endl;
-
-	return foundPaths;
+	return pushBoxes(foundPaths);
 }
 
 // Returns the coordinates from which the given box can be pushed.
@@ -368,7 +351,7 @@ vector<Node*> Node::findPaths(vector<Point> goals, vector<string> map){
 		char directions[4] = {'L','R','U','D'};
 		for(size_t i=0; i<4; i++){
                    Node* child = currentNode->getChild(directions[i],false);
-                   if(child->direction != 'X')
+                   if(child != 0)
                        children.push_back(child);
                    }
 		for(vector<Node*>::iterator i = children.begin();i!=children.end();++i)

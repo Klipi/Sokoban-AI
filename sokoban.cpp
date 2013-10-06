@@ -201,7 +201,7 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 };
 
-bool isGoal(std::vector<Point> goal, State state) {
+bool isGoal(std::vector<Point> goal, State state, bool back=false,Point initialPlayer=Point(0,0)) {
 	// Assume goal and boxes in state is sorted
 	for (size_t i = 0; i < state.boxes.size(); i++)
 	{
@@ -210,6 +210,8 @@ bool isGoal(std::vector<Point> goal, State state) {
 			return false;
 		}
 	}
+	if(back)
+		return state.player==initialPlayer;
 	return true;
 };
 
@@ -307,6 +309,32 @@ bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates,
 	
 }
 
+std::string reversePath(std::string& path)
+{
+	std::vector<char> tmp;
+	for(int i=path.size()-1;i>=0;--i)
+	{
+		switch(path[i])
+		{
+		case 'L':
+			tmp.push_back('R');
+			break;
+		case 'R':
+			tmp.push_back('L');
+			break;
+		case 'U':
+			tmp.push_back('D');
+			break;
+		case 'D':
+			tmp.push_back('U');
+			break;
+		default:
+			tmp.push_back(' ');
+		}
+	}
+	return std::string(tmp.begin(),tmp.end());
+}
+
 int main(int argc, const char **argv) {
 	bool verbose = false;
 	bool back = false;
@@ -392,12 +420,14 @@ int main(int argc, const char **argv) {
 
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			if(isGoal(goals,(*i)->state))
+			if(isGoal(goals,(*i)->state,back,initialPlayer))
 			{
 				std::string answer = getPath(*i);
 				//showSolution(clearBoard,start,answer);
+				if(back)
+					answer = reversePath(answer);
 				std::cout << answer << std::endl;
-				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
+//				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
 				return 0;
 			}
 

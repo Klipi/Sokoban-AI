@@ -407,13 +407,15 @@ vector<Node*> BackNode::getNextSteps(vector<string> map)
 		{
 			State nS = State(pos[i],state.boxes);
 			int oposite = (i%2==0)?i+1:i-1;
+			ret.push_back(new BackNode(nS,directions[i],this));
 			if(hasBoxIn(pos[oposite]))
 			{
-				std::replace(nS.boxes.begin(),nS.boxes.end(),pos[oposite],state.player);
-				std::sort(nS.boxes.begin(),nS.boxes.end());
+				State anS = State(pos[i],state.boxes);
+				std::replace(anS.boxes.begin(),anS.boxes.end(),pos[oposite],state.player);
+				std::sort(anS.boxes.begin(),anS.boxes.end());
 				best = ret.size();
+				ret.push_back(new BackNode(anS,directions[i],this));
 			}
-			ret.push_back(new BackNode(nS,directions[i],this));
 		}
 	}
 	if(best>0)

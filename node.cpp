@@ -386,3 +386,37 @@ bool Node::isSearchTarget(vector<Point> &goals){
 
 	return false;
 }
+bool BackNode::isFreePoint(Point place){
+	return !(hasBoxIn(place) || hasWallIn(place));
+}
+
+vector<Node*> BackNode::getNextSteps(vector<string> map)
+{
+	unordered_map<int, char> directions;
+	directions[0] = 'L';
+	directions[1] = 'R';
+	directions[2] = 'U';
+	directions[3] = 'D';
+
+	vector<Node*> ret;
+	vector<Point> pos = state.player.getNeighbours();
+	int best = 0;
+	for( int i =0;i<pos.size();++i)
+	{
+		if(isFreePoint(pos[i]))
+		{
+			State nS = State(pos[i],state.boxes);
+			int oposite = (i%2==0)?i+1:i-1;
+			if(hasBoxIn(pos[oposite]))
+			{
+				std::replace(nS.boxes.begin(),nS.boxes.end(),pos[oposite],state.player);
+				std::sort(nS.boxes.begin(),nS.boxes.end());
+				best = ret.size();
+			}
+			ret.push_back(new BackNode(nS,directions[i],this));
+		}
+	}
+	if(best>0)
+		std::swap( ret[best], ret[0] );
+	return ret;
+}

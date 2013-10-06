@@ -14,7 +14,6 @@ struct State {
 
     // Seems broken? Used only for same player position?
     bool operator==(const State& other){
-		//std::pair<std::vector<Point>::iterator ,std::vector<Point>::iterator > theSame = std::mismatch(boxes.begin(),boxes.end(),other.boxes.begin());
 		if (player != other.player)
         {
             return false;

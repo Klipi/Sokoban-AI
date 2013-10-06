@@ -11,9 +11,10 @@
 using namespace std;
 
 // Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard) {
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard, bool back, Point &initialPlayerPos) {
 	// Parse the board and save the current state into currentstate and all possible goal states in the vector
 	// Filip
+	bool placed = false;
 	for (uint8_t i = 0; i<map.size();++i)
 	{
 		int x;
@@ -24,15 +25,29 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		while((x=map[i].find('$',p)) < std::string::npos)
 		{
 			p=x+1;
-			root->state.boxes.push_back(Point(x,i));
-			clearBoard[i][x] = ' ';
+			if(back)
+			{
+				goal.push_back(Point(x,i));
+				clearBoard[i][x] = '.';
+			}
+			else
+			{
+				root->state.boxes.push_back(Point(x,i));
+				clearBoard[i][x] = ' ';
+			}
 		}
 
 		p=0;
 		while((x=map[i].find('.',p))<std::string::npos)
 		{
 			p=x+1;
-			goal.push_back(Point(x,i));
+			if(back)
+			{
+				root->state.boxes.push_back(Point(x,i));
+				clearBoard[i][x] = ' ';
+			}
+			else
+				goal.push_back(Point(x,i));
 		}
 
 		p=0;
@@ -46,17 +61,58 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 
 		if((x=map[i].find('@')) < std::string::npos)
 		{
-			root->state.player = Point(x,i);
+			if(!back)
+				root->state.player = Point(x,i);
+			else
+			{
+				initialPlayerPos.x=x;
+				initialPlayerPos.y=i;
+			}
 			map[i][x] = ' ';
 			clearBoard[i][x] = ' ';
 		}
 		else if((x=map[i].find('+')) < std::string::npos)
 		{
-			root->state.player = Point(x,i);
-			goal.push_back(Point(x,i));
-			map[i][x] = '.';
-			clearBoard[i][x] = '.';
+			if(back)
+			{
+				initialPlayerPos.x=x;
+				initialPlayerPos.y=i;
+				Point pos(x,i);
+				root->state.boxes.push_back(pos);
+				map[i][x] = ' ';
+				clearBoard[i][x] = ' ';
+				vector<Point> posi = pos.getNeighbours();
+				for(int i=0;i<posi.size();++i)
+				{
+					if(root->isFreePoint(posi[i]))
+					{
+						root->state.player = posi[i];
+						placed=true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				root->state.player = Point(x,i);
+				goal.push_back(Point(x,i));
+				map[i][x] = '.';
+				clearBoard[i][x] = '.';
+			}
 		}
+	}
+	if(!placed)
+	{
+		for(int j=0;j<root->state.boxes.size();++j)
+		{vector<Point> pos = root->state.boxes[j].getNeighbours();
+		for(int i=0;i<pos.size();++i)
+		{
+			if(root->isFreePoint(pos[i]))
+			{
+				root->state.player = pos[i];
+				break;
+			}
+		}}
 	}
 
 	// Find edgecells
@@ -185,14 +241,6 @@ void showBoard(std::vector<std::string> clearBoard, State state) {
 	std::cerr << std::endl;
 };
 
-void showSolution(std::vector<std::string> clearBoard, Node* node, string solution){
-     showBoard(clearBoard,node->state);
-     for(char & c : solution){
-                node = node->getChild(c,true);
-                showBoard(clearBoard,node->state);
-                }
-}
-
 //************NOT USED RIGHT NOW, TAKES TOO MUCH TIME************************//
 // Finds the lowest reachable position without moving boxes. Used to keep the hash table clean
 // (ie. player position is always the same unless something actually critical has happened)
@@ -261,6 +309,8 @@ bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates,
 
 int main(int argc, const char **argv) {
 	bool verbose = false;
+	bool back = false;
+	Point initialPlayer(0,0);
 	debug = 0;
 	for (int i = 1; i < argc; ++i)
 	{
@@ -276,6 +326,10 @@ int main(int argc, const char **argv) {
 			else
 				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
 		}
+		else if (param == "back" || param == "b")
+		{
+			back = true;
+		}
 		else
 		{
 			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
@@ -284,7 +338,7 @@ int main(int argc, const char **argv) {
 	}
 	if (debug > 0) cerr << "Stating debug level " << debug << endl;
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
-	Node* start = new Node();
+	Node* start = back ? new BackNode() : new Node();
 	
 
 	goals = std::vector<Point>();
@@ -295,7 +349,7 @@ int main(int argc, const char **argv) {
 	for (std::string line; std::getline(std::cin, line);)
 		board.push_back(line);
 
-	parseBoard(board, start, goals, clearBoard);
+	parseBoard(board, start, goals, clearBoard,back,initialPlayer);
 	sort(goals.begin(), goals.end());
 	addToHashMap(knownStates, start, 0);
 	int best = heuristic(start->state);

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <iostream>
 
 class Point {
     public:
@@ -28,6 +29,11 @@ class Point {
             return !(*this < other || *this == other);
         }
 
+        friend std::ostream& operator<<(std::ostream& o, const Point &p)
+        {
+        	o<<(int)p.x<<":"<<(int)p.y;
+        	return o;
+        }
         Point():x(0),y(0){}
 
         Point(uint8_t px, uint8_t py): x(px), y(py){}

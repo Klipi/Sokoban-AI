@@ -14,7 +14,7 @@ class Node {
 		bool hasBoxIn(Point);
 		bool hasWallIn(Point);
 		bool hasGoalIn(Point);
-		bool isFreePoint(Point);
+		virtual bool isFreePoint(Point);
 		Node* getChild(char, bool);
 		//bool identifyDeadBox(Node*, Point);
 		bool isBoxStuck(Point, bool);
@@ -25,8 +25,9 @@ class Node {
 
 		Node():direction(' '),parent(NULL){};
 		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};
+		virtual ~Node(){};
 
-		std::vector<Node*> getNextSteps(std::vector<std::string> map);
+		virtual std::vector<Node*> getNextSteps(std::vector<std::string> map);
 		std::vector<Point> getMovableSides(Point box, std::vector<std::string> map);
 		std::vector<Node*> findPaths(std::vector<Point> goals, std::vector<std::string> map);
 		bool isSearchTarget(std::vector<Point> &goals);
@@ -43,4 +44,13 @@ struct NodeCompare
 	}
 };
 
+class BackNode: public Node
+{
+public:
+	BackNode():Node(){};
+	BackNode(State s, char d, Node* p):Node(s, d, p){};
+	virtual ~BackNode(){};
+	bool isFreePoint(Point);
+	std::vector<Node*> getNextSteps(std::vector<std::string> map);
+};
 #endif

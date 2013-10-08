@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "node.hpp"
 #include "globals.hpp"
-#include "solveProblem.hpp"
+#include "problemSolver.hpp"
 #include "goalTest.hpp"
 
 using namespace std;

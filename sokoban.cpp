@@ -7,8 +7,10 @@
 #include <time.h>
 #include "sokoban.hpp"
 #include "globals.hpp"
+#include "problemSolver.hpp"
 
 using namespace std;
+
 
 // Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
 void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard, bool back, Point &initialPlayerPos) {
@@ -104,15 +106,26 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	if(!placed)
 	{
 		for(int j=0;j<root->state.boxes.size();++j)
-		{vector<Point> pos = root->state.boxes[j].getNeighbours();
-		for(int i=0;i<pos.size();++i)
 		{
-			if(root->isFreePoint(pos[i]))
+			vector<Point> pos = root->state.boxes[j].getNeighbours();
+			for(int i=0;i<pos.size();++i)
 			{
-				root->state.player = pos[i];
-				break;
+				if(root->isFreePoint(pos[i]))
+				{
+					State start(pos[i],root->state.boxes);
+					ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), goal, new NoBoxMoveNode(start,' ',0));
+					std::string path = findPathToGoals.findSolution();
+					if(path!="")
+					{
+						root->state.player = pos[i];
+						placed=true;
+						break;
+					}
+				}
 			}
-		}}
+			if(placed)
+				break;
+		}
 	}
 
 	// Find edgecells
@@ -201,26 +214,12 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 };
 
-bool isGoal(std::vector<Point> goal, State state, bool back=false,Point initialPlayer=Point(0,0)) {
-	// Assume goal and boxes in state is sorted
-	for (size_t i = 0; i < state.boxes.size(); i++)
-	{
-		if (goal[i] != state.boxes[i])
-		{
-			return false;
-		}
-	}
-	if(back)
-		return state.player==initialPlayer;
-	return true;
-};
-
 std::string getPath(Node* node) {
 	// Returns a string with all steps that led to the state
 	std::string path;
 	Node *current = node;
 	while(current->parent != NULL){
-        path.insert(path.begin(),current->direction);
+        path=current->direction+path;
 		current = current->parent;
 	}
 	return path;
@@ -337,7 +336,7 @@ std::string reversePath(std::string& path)
 
 int main(int argc, const char **argv) {
 	bool verbose = false;
-	bool back = false;
+	bool back = true;
 	Point initialPlayer(0,0);
 	debug = 0;
 	for (int i = 1; i < argc; ++i)
@@ -382,6 +381,7 @@ int main(int argc, const char **argv) {
 	addToHashMap(knownStates, start, 0);
 	int best = heuristic(start->state);
 	Node* bestNode = start;
+	MainGoalTest maintGoalTest = MainGoalTest(back,initialPlayer);
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
@@ -420,14 +420,14 @@ int main(int argc, const char **argv) {
 
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			if(isGoal(goals,(*i)->state,back,initialPlayer))
+			if(maintGoalTest.isGoal(goals,(*i)->state))
 			{
 				std::string answer = getPath(*i);
 				//showSolution(clearBoard,start,answer);
 				if(back)
 					answer = reversePath(answer);
 				std::cout << answer << std::endl;
-//				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
+				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
 				return 0;
 			}
 

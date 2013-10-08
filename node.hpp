@@ -8,7 +8,7 @@
 class Node {
 	public:
 		State state;
-		char direction;
+		std::string direction;
 		Node *parent;
 
 		bool hasBoxIn(Point);
@@ -23,8 +23,9 @@ class Node {
 		bool identifyDeadGroup(std::vector<Point>, Point);
 		std::vector<Point> getAdjacentBoxGroup(Point);
 
-		Node():direction(' '),parent(NULL){};
-		Node(State s, char d, Node* p):state(s), direction(d), parent(p){};
+		Node():direction(1,' '),parent(NULL){};
+		Node(State s, char d, Node* p):state(s), direction(1,d), parent(p){};
+		Node(State s, std::string d, Node* p):state(s), direction(d), parent(p){};
 		virtual ~Node(){};
 
 		virtual std::vector<Node*> getNextSteps(std::vector<std::string> map);
@@ -52,5 +53,16 @@ public:
 	virtual ~BackNode(){};
 	bool isFreePoint(Point);
 	std::vector<Node*> getNextSteps(std::vector<std::string> map);
+};
+
+class NoBoxMoveNode: public Node
+{
+public:
+	NoBoxMoveNode():Node(){};
+	NoBoxMoveNode(State s, char d, Node* p):Node(s, d, p){};
+	virtual ~NoBoxMoveNode(){};
+	bool isFreePoint(Point);
+	std::vector<Node*> getNextSteps(std::vector<std::string> map);
+
 };
 #endif

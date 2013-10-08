@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "node.hpp"
 #include "globals.hpp"
+#include "solveProblem.hpp"
+#include "goalTest.hpp"
 
 using namespace std;
 
@@ -386,6 +388,7 @@ bool Node::isSearchTarget(vector<Point> &goals){
 
 	return false;
 }
+
 bool BackNode::isFreePoint(Point place){
 	return !(hasBoxIn(place) || hasWallIn(place));
 }
@@ -401,7 +404,7 @@ vector<Node*> BackNode::getNextSteps(vector<string> map)
 	vector<Node*> ret;
 	vector<Point> pos = state.player.getNeighbours();
 	int best = 0;
-	for( int i =0;i<pos.size();++i)
+	for( unsigned int i =0;i<pos.size();++i)
 	{
 		if(isFreePoint(pos[i]))
 		{
@@ -418,7 +421,34 @@ vector<Node*> BackNode::getNextSteps(vector<string> map)
 			}
 		}
 	}
+//	std::sort(ret.begin(),ret.end(), NodeCompare());
 	if(best>0)
 		std::swap( ret[best], ret[0] );
+	return ret;
+}
+
+bool NoBoxMoveNode::isFreePoint(Point place){
+	return !(hasBoxIn(place) || hasWallIn(place));
+}
+
+vector<Node*> NoBoxMoveNode::getNextSteps(vector<string> map)
+{
+	unordered_map<int, char> directions;
+	directions[0] = 'L';
+	directions[1] = 'R';
+	directions[2] = 'U';
+	directions[3] = 'D';
+
+	vector<Node*> ret;
+	vector<Point> pos = state.player.getNeighbours();
+	for( unsigned int i =0;i<pos.size();++i)
+	{
+		if(isFreePoint(pos[i]))
+		{
+			State nS = State(pos[i],state.boxes);
+			ret.push_back(new NoBoxMoveNode(nS,directions[i],this));
+		}
+	}
+//	std::sort(ret.begin(),ret.end());
 	return ret;
 }

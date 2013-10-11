@@ -39,13 +39,13 @@ vector<Node*> pushBoxes(vector<Node*> nodes){
 	return pushed;
 }
 
-int distance(Point p1, Point p2)
+int distance(const Point &p1, const Point &p2)
 {
 	return abs(p1.x - p2.x) + abs(p1.y- p2.y);
 }
 
 // Smaller = closer to goal.
-int heuristic(State state)
+int heuristic(const State &state)
 {
 	int value = 0;
 
@@ -56,7 +56,7 @@ int heuristic(State state)
 		int minSoFar = 1000;
 		Point bestSoFar;
 
-		for (std::vector<Point>::iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
+		for (std::vector<Point>::const_iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
 		{
 			if (minSoFar > distance(*i, *j) && find(usedBoxes.begin(), usedBoxes.end(), *i) == usedBoxes.end())
 			{
@@ -112,7 +112,7 @@ bool Node::isBoxStuck(Point box) {
 }
 
 // Returns true if there is a wall at given Point
-bool Node::hasWallIn(Point place){
+bool Node::hasWallIn(const Point &place){
 	//bool ret = clearBoard[place.y][place.x] == '#';
 	//if (ret == true)
 	//	cerr << "Pushing against wall at " << (int)place.x << "," << (int)place.y << endl;
@@ -120,16 +120,16 @@ bool Node::hasWallIn(Point place){
 }
 
 // Checks if there is a box at given Point
-bool Node::hasBoxIn(Point place){
+bool Node::hasBoxIn(const Point &place){
 	return find(state.boxes.begin(), state.boxes.end(), place) != state.boxes.end();
 }
 
-bool Node::hasGoalIn(Point place){
+bool Node::hasGoalIn(const Point &place){
 	return clearBoard[place.y][place.x] == '.';
 }
 
 // For checking if box can be pushed there
-bool Node::isFreePoint(Point place){
+bool Node::isFreePoint(const Point &place){
 	return !(hasBoxIn(place) || hasWallIn(place) || clearBoard[place.y][place.x] == '?');
 }
 
@@ -278,7 +278,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 }
 
 // Given a node, returns the next nodes to be added to the search queue.
-vector<Node*> Node::getNextSteps(vector<string> map) {
+vector<Node*> Node::getNextSteps(const vector<string> &map) {
 	//cerr << "No. of boxes: " << current->state.boxes.size() << endl;
 	// Aggregate "interesting" places for the pathfinding algorithm
 	vector<Point> nextToBox;
@@ -389,11 +389,11 @@ bool Node::isSearchTarget(vector<Point> &goals){
 	return false;
 }
 
-bool BackNode::isFreePoint(Point place){
+bool BackNode::isFreePoint(const Point &place){
 	return !(hasBoxIn(place) || hasWallIn(place));
 }
 
-vector<Node*> BackNode::getNextSteps(vector<string> map)
+vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 {
 	unordered_map<int, char> directions;
 	directions[0] = 'L';
@@ -427,11 +427,11 @@ vector<Node*> BackNode::getNextSteps(vector<string> map)
 	return ret;
 }
 
-bool NoBoxMoveNode::isFreePoint(Point place){
+bool NoBoxMoveNode::isFreePoint(const Point &place){
 	return !(hasBoxIn(place) || hasWallIn(place));
 }
 
-vector<Node*> NoBoxMoveNode::getNextSteps(vector<string> map)
+vector<Node*> NoBoxMoveNode::getNextSteps(const vector<string> &map)
 {
 	unordered_map<int, char> directions;
 	directions[0] = 'L';

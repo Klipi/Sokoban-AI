@@ -11,10 +11,10 @@ class Node {
 		std::string direction;
 		Node *parent;
 
-		bool hasBoxIn(Point);
-		bool hasWallIn(Point);
-		bool hasGoalIn(Point);
-		virtual bool isFreePoint(Point);
+		bool hasBoxIn(const Point&);
+		bool hasWallIn(const Point&);
+		bool hasGoalIn(const Point&);
+		virtual bool isFreePoint(const Point&);
 		Node* getChild(char, bool);
 		//bool identifyDeadBox(Node*, Point);
 		bool isBoxStuck(Point, bool);
@@ -28,14 +28,14 @@ class Node {
 		Node(State s, std::string d, Node* p):state(s), direction(d), parent(p){};
 		virtual ~Node(){};
 
-		virtual std::vector<Node*> getNextSteps(std::vector<std::string> map);
+		virtual std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
 		std::vector<Point> getMovableSides(Point box, std::vector<std::string> map);
 		std::vector<Node*> findPaths(std::vector<Point> goals, std::vector<std::string> map);
 		bool isSearchTarget(std::vector<Point> &goals);
 
 };
 
-int heuristic(State);
+int heuristic(const State&);
 
 struct NodeCompare
 {
@@ -51,8 +51,8 @@ public:
 	BackNode():Node(){};
 	BackNode(State s, char d, Node* p):Node(s, d, p){};
 	virtual ~BackNode(){};
-	bool isFreePoint(Point);
-	std::vector<Node*> getNextSteps(std::vector<std::string> map);
+	bool isFreePoint(const Point&);
+	std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
 };
 
 class NoBoxMoveNode: public Node
@@ -61,8 +61,8 @@ public:
 	NoBoxMoveNode():Node(){};
 	NoBoxMoveNode(State s, char d, Node* p):Node(s, d, p){};
 	virtual ~NoBoxMoveNode(){};
-	bool isFreePoint(Point);
-	std::vector<Node*> getNextSteps(std::vector<std::string> map);
+	bool isFreePoint(const Point&);
+	std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
 
 };
 #endif

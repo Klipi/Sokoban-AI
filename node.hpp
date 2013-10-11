@@ -5,10 +5,13 @@
 #include "state.hpp"
 #include "point.hpp"
 
+int heuristic(const State&);
+
 class Node {
 	public:
 		State state;
-		std::string direction;
+		char direction;
+		int hCost;
 		Node *parent;
 
 		bool hasBoxIn(const Point&);
@@ -23,9 +26,10 @@ class Node {
 		bool identifyDeadGroup(std::vector<Point>, Point);
 		std::vector<Point> getAdjacentBoxGroup(Point);
 
-		Node():direction(1,' '),parent(NULL){};
-		Node(State s, char d, Node* p):state(s), direction(1,d), parent(p){};
-		Node(State s, std::string d, Node* p):state(s), direction(d), parent(p){};
+		Node():direction(' '),hCost(0),parent(NULL){};
+		Node(State s, char d, Node* p):state(s), direction(d), parent(p){
+			hCost = heuristic(state);
+		};
 		virtual ~Node(){};
 
 		virtual std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
@@ -35,13 +39,11 @@ class Node {
 
 };
 
-int heuristic(const State&);
-
 struct NodeCompare
 {
 	bool operator()(const Node* a, const Node* b) const
 	{
-		return heuristic(a->state) > heuristic(b->state);
+		return a->hCost>b->hCost;
 	}
 };
 

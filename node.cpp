@@ -58,12 +58,15 @@ int heuristic(const State &state)
 
 		for (std::vector<Point>::const_iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
 		{
-			if (minSoFar > distance(*i, *j) && find(usedBoxes.begin(), usedBoxes.end(), *i) == usedBoxes.end())
+			int d = distance(*i, *j);
+			if (minSoFar >  d && find(usedBoxes.begin(), usedBoxes.end(), *i) == usedBoxes.end())
 			{
-				minSoFar = distance(*i, *j);
+				minSoFar = d;
 				bestSoFar = *i;
 			}
 		}
+		if(minSoFar>0)
+			value += 0.5*distance(*j,state.player);
 		value += minSoFar;
 		usedBoxes.push_back(bestSoFar);
 	}

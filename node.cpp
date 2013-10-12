@@ -412,7 +412,7 @@ vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 		if(isFreePoint(pos[i]))
 		{
 			State nS = State(pos[i],state.boxes);
-			if(this->parent == NULL || (this->parent != NULL && !(this->parent->state == nS))){
+			if(this->parent == NULL || !(this->parent->state == nS)){
 			    ret.push_back(new BackNode(nS,directions[i],this));
              }
 			int oposite = (i%2==0)?i+1:i-1;
@@ -451,7 +451,8 @@ vector<Node*> NoBoxMoveNode::getNextSteps(const vector<string> &map)
 		if(isFreePoint(pos[i]))
 		{
 			State nS = State(pos[i],state.boxes);
-			ret.push_back(new NoBoxMoveNode(nS,directions[i],this));
+			if(this->parent == NULL || !(this->parent->state == nS))
+                ret.push_back(new NoBoxMoveNode(nS,directions[i],this));
 		}
 	}
 //	std::sort(ret.begin(),ret.end());

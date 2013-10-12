@@ -428,7 +428,7 @@ int main(int argc, const char **argv) {
 				if(back)
 					answer = reversePath(answer);
 				std::cout << answer << std::endl;
-				//cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
+				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
 				return 0;
 			}
 

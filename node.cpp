@@ -109,7 +109,7 @@ bool Node::isBoxStuck(Point box, bool LRCheck) {
 // Checks if a box can still be moved. Useful for pruning the search tree. (?)
 bool Node::isBoxStuck(Point box) {
 	bool stuckLR = this->isBoxStuck(box, true);
-	bool stuckUD = this->isBoxStuck(box, false);
+    bool stuckUD = this->isBoxStuck(box, false);
 
 	return (stuckLR && stuckUD);
 }
@@ -393,7 +393,7 @@ bool Node::isSearchTarget(vector<Point> &goals){
 }
 
 bool BackNode::isFreePoint(const Point &place){
-	return !(hasBoxIn(place) || hasWallIn(place));
+	return (!hasWallIn(place) && !hasBoxIn(place));
 }
 
 vector<Node*> BackNode::getNextSteps(const vector<string> &map)
@@ -412,8 +412,10 @@ vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 		if(isFreePoint(pos[i]))
 		{
 			State nS = State(pos[i],state.boxes);
+			if(this->parent == NULL || (this->parent != NULL && !(this->parent->state == nS))){
+			    ret.push_back(new BackNode(nS,directions[i],this));
+             }
 			int oposite = (i%2==0)?i+1:i-1;
-			ret.push_back(new BackNode(nS,directions[i],this));
 			if(hasBoxIn(pos[oposite]))
 			{
 				State anS = State(pos[i],state.boxes);
@@ -431,7 +433,7 @@ vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 }
 
 bool NoBoxMoveNode::isFreePoint(const Point &place){
-	return !(hasBoxIn(place) || hasWallIn(place));
+	return (!hasWallIn(place) && !hasBoxIn(place));
 }
 
 vector<Node*> NoBoxMoveNode::getNextSteps(const vector<string> &map)

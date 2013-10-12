@@ -127,91 +127,92 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 				break;
 		}
 	}
-
-	// Find edgecells
-
-	// Vertical
-	// There is never more than like 50 cells in the maps given
-	bool edge, LR, UD;
-	size_t combo = -1;
-	for (size_t x = 1; x < 55; x++)
-	{
-		edge = false;
-		combo = 0;
-		for (size_t y = 1; y < clearBoard.size(); y++)
-		{
-			if (clearBoard[y][x] == '#') {
-				if (combo > 0) {
-					// Was on a streak but now it hit the wall => fill the holes
-					for (size_t i = y-1; i > y-combo-1; i--) {
-						clearBoard[i][x] = '?';
-					}
-				}
-				combo = 0;
-			}
-			else {
-				if (combo != -1 && clearBoard[y][x] == ' ') {
-				}
-				if (
-						combo != -1 && clearBoard[y][x] == ' ' && (
-						(clearBoard[y][x-1] == '#') ||
-						(x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#')))
-				{
-					combo++;
-				}
-				else
-				{
-					combo = -1;
-				}
-			}
-		}
-	}
-
-	// Horisontal and corners
-	for (size_t y = 1; y < clearBoard.size(); y++)
-	{
-		edge = false;
-		combo = 0;
-		for (size_t x = 1; x < clearBoard[y].size(); x++)
-		{
-			// Horisontal
-			if (clearBoard[y][x] == '#') {
-				if (combo > 0) {
-					// Was on a streak but now it hit the wall => fill the holes
-					for (size_t i = x-1; i > x-combo-1; i--) {
-						clearBoard[y][i] = '?';
-					}
-				}
-				combo = 0;
-			}
-			else {
-				if (
-						combo != -1 && (clearBoard[y][x] == ' ' || clearBoard[y][x] == '?') && (
-						(clearBoard[y-1][x] == '#') ||
-						(y+1 < clearBoard.size() && clearBoard[y+1][x] == '#')))
-				{
-					combo++;
-				}
-				else
-				{
-					combo = -1;
-				}
-			}
-
-			// Corners
-			if (clearBoard[y][x] == ' ')
-			{
-				UD = clearBoard[y-1][x] == '#' || (y+1 < clearBoard.size() && clearBoard[y+1][x] == '#');
-				LR = clearBoard[y][x-1] == '#' || (x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#');
-
-				if (UD && LR)
-				{
-					clearBoard[y][x] = '?';
-				}
-			}
-
-		}
-	}
+    
+    if(!back)
+    {
+    	// Find edgecells
+    
+    	// Vertical
+    	// There is never more than like 50 cells in the maps given
+    	bool edge, LR, UD;
+    	size_t combo = -1;
+    	for (size_t x = 1; x < 55; x++)
+    	{
+    		edge = false;
+    		combo = 0;
+    		for (size_t y = 1; y < clearBoard.size(); y++)
+    		{
+    			if (clearBoard[y][x] == '#') {
+    				if (combo > 0) {
+    					// Was on a streak but now it hit the wall => fill the holes
+    					for (size_t i = y-1; i > y-combo-1; i--) {
+    						clearBoard[i][x] = '?';
+    					}
+    				}
+    				combo = 0;
+    			}
+    			else {
+    				if (
+    						combo != -1 && clearBoard[y][x] == ' ' && (
+    						(clearBoard[y][x-1] == '#') ||
+    						(x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#')))
+    				{
+    					combo++;
+    				}
+    				else
+    				{
+    					combo = -1;
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Horisontal and corners
+    	for (size_t y = 1; y < clearBoard.size(); y++)
+    	{
+    		edge = false;
+    		combo = 0;
+    		for (size_t x = 1; x < clearBoard[y].size(); x++)
+    		{
+    			// Horisontal
+    			if (clearBoard[y][x] == '#') {
+    				if (combo > 0) {
+    					// Was on a streak but now it hit the wall => fill the holes
+    					for (size_t i = x-1; i > x-combo-1; i--) {
+    						clearBoard[y][i] = '?';
+    					}
+    				}
+    				combo = 0;
+    			}
+    			else {
+    				if (
+    						combo != -1 && (clearBoard[y][x] == ' ' || clearBoard[y][x] == '?') && (
+    						(clearBoard[y-1][x] == '#') ||
+    						(y+1 < clearBoard.size() && clearBoard[y+1][x] == '#')))
+    				{
+    					combo++;
+    				}
+    				else
+    				{
+    					combo = -1;
+    				}
+    			}
+    
+    			// Corners
+    			if (clearBoard[y][x] == ' ')
+    			{
+    				UD = clearBoard[y-1][x] == '#' || (y+1 < clearBoard.size() && clearBoard[y+1][x] == '#');
+    				LR = clearBoard[y][x-1] == '#' || (x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#');
+    
+    				if (UD && LR)
+    				{
+    					clearBoard[y][x] = '?';
+    				}
+    			}
+    
+    		}
+    	}
+    }
 };
 
 std::string getPath(Node* node) {
@@ -427,7 +428,7 @@ int main(int argc, const char **argv) {
 				if(back)
 					answer = reversePath(answer);
 				std::cout << answer << std::endl;
-				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
+				//cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
 				return 0;
 			}
 

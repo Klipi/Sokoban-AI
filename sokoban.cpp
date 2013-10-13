@@ -337,6 +337,7 @@ std::string reversePath(std::string& path)
 int main(int argc, const char **argv) {
 	bool verbose = false;
 	bool back = true;
+	bool notime = false;
 	Point initialPlayer(0,0);
 	debug = 0;
 	for (int i = 1; i < argc; ++i)
@@ -356,6 +357,10 @@ int main(int argc, const char **argv) {
 		else if (param == "back" || param == "b")
 		{
 			back = true;
+		}
+		else if (param == "-notime")
+		{
+			notime = true;
 		}
 		else
 		{
@@ -427,7 +432,8 @@ int main(int argc, const char **argv) {
 				if(back)
 					answer = reversePath(answer);
 				std::cout << answer << std::endl;
-				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
+				if(!notime)
+					cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC << endl;
 				return 0;
 			}
 

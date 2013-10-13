@@ -337,6 +337,8 @@ std::string reversePath(std::string& path)
 int main(int argc, const char **argv) {
 	bool verbose = false;
 	bool back = true;
+	bool notime = false;
+	int timeout = -1;
 	Point initialPlayer(0,0);
 	debug = 0;
 	for (int i = 1; i < argc; ++i)
@@ -364,7 +366,7 @@ int main(int argc, const char **argv) {
 		else if (param == "-timeout")
 		{
 			if (i + 1 < argc)
-				debug = (int)*argv[++i] - '0';
+				timeout = atoi(argv[++i]);
 			else
 				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
 
@@ -404,6 +406,11 @@ int main(int argc, const char **argv) {
 
 	while(!frontier.empty())
 	{
+		if (timeout > 0 && timeout < (clock() - start_clock)/ (double) CLOCKS_PER_SEC)
+        {
+        	cout << "Timeout " << timeout << endl;
+        	return 0;
+        }
         /*if((clock()-t)/(double) CLOCKS_PER_SEC > 1){
                                 cerr << counter << endl;
                                 counter = 0;
@@ -439,7 +446,8 @@ int main(int argc, const char **argv) {
 				if(back)
 					answer = reversePath(answer);
 				std::cout << answer << std::endl;
-				cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
+				if (!notime)
+					cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC;
 				return 0;
 			}
 

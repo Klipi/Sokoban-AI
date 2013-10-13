@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
-#include <tr1/functional>
+//#include <tr1/functional>
 #include "point.hpp"
 
 struct State {
@@ -41,7 +41,7 @@ struct StateHash {
     {
         coordinates << state.boxes[i].x << state.boxes[i].y;
     }
-    std::tr1::hash<std::string> stringHash;
+    std::hash<std::string> stringHash;
     return stringHash(coordinates.str());
  }
 };

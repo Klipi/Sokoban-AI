@@ -357,6 +357,18 @@ int main(int argc, const char **argv) {
 		{
 			back = true;
 		}
+		else if (param == "-notime")
+		{
+			notime = true;
+		}
+		else if (param == "-timeout")
+		{
+			if (i + 1 < argc)
+				debug = (int)*argv[++i] - '0';
+			else
+				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
+
+		}
 		else
 		{
 			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;

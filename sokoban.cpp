@@ -303,7 +303,8 @@ bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates,
 	}
 	else
 	{
-		knownStates[node->state] = value;
+		if (knownStates[node->state] != value)
+			knownStates[node->state] += value;
 		return false;
 	}
 	
@@ -335,50 +336,134 @@ std::string reversePath(std::string& path)
 	return std::string(tmp.begin(),tmp.end());
 }
 
-int main(int argc, const char **argv) {
-	bool verbose = false;
-	bool back = true;
-	bool notime = false;
+// Returns true if goal expansion finds an ordinary node or vice versa
+bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier, unordered_map<State, int, StateHash, StateEqual> &knownStates, int hashMapID, bool verbose)
+{
+	Node* current = frontier.top();
+	frontier.pop();
+	if (verbose) {
+		int value = heuristic(current->state);
+		cerr << "Current heuristic value: " << value << endl;
+		// cerr << "Best heuristic value before: " << best << endl;
+		// if (value < best )
+		// {
+		// 	best = value;
+		// 	bestNode = current;
+		// }
+		std::cerr << "Path: " << getPath(current) << std::endl;
+		showBoard(clearBoard, (current)->state);
+	}
+	if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
+	//knownStates[current->state] = 1;
+	if (debug > 1) cerr << "Finding next nodes." << endl;
+	std::vector<Node*> children = current->getNextSteps(clearBoard);
+	if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
 
-	Point initialPlayer(0,0);
-	debug = 0;
-	int timeout = -1;
-	for (int i = 1; i < argc; ++i)
+	for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 	{
-		std::string param(argv[i]);
-		if (param == "verbose" || param == "v")
+		if (addToHashMap(knownStates, (*i), hashMapID))
 		{
-			verbose = true;
-		}
-		else if (param == "debug" || param == "d")
-		{
-			if (i + 1 < argc)
-				debug = (int)*argv[++i] - '0';
-			else
-				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
-		}
-		else if (param == "back" || param == "b")
-		{
-			back = true;
-		}
-		else if (param == "-notime")
-		{
-			notime = true;
-		}
-		else if (param == "-timeout")
-		{
-			if (i + 1 < argc)
-				timeout = atoi(argv[++i]);
-			else
-				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
-		}
-		else
-		{
-			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
-			return -1;
+			//std::cerr << "New node found, printing..." << std::endl;
+			if (knownStates[(*i)->state] != hashMapID)
+				cout << "Goal Found" << endl;
+			frontier.push(*i);
+			return true;
 		}
 	}
-	if (debug > 0) cerr << "Stating debug level " << debug << endl;
+
+	return false;
+}
+
+int solveBidirectional(bool verbose, bool notime, int timeout)
+{
+	Point initialPlayer(0,0);
+	Point initialPlayerBack(0,0);
+
+	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	Node* start = new Node();
+	Node* goal = new BackNode();
+
+	goals = vector<Point>();
+	vector<Point> initialBoxes = vector<Point>();
+
+	vector<string> board;
+	for (string line; getline(cin, line);)
+		board.push_back(line);
+
+
+	vector<string> backBoard (board);
+	vector<string> clear2;
+	parseBoard(board, start, goals, clearBoard, false, initialPlayer);
+	parseBoard(backBoard, goal, initialBoxes, clear2, true, initialPlayer);
+	sort(goals.begin(), goals.end());
+	sort(initialBoxes.begin(), initialBoxes.end());
+	addToHashMap(knownStates, start, 1);
+	addToHashMap(knownStates, goal, 2);
+
+	int frontBest = heuristic(start->state);
+	int backBest = heuristic(goal->state);
+
+	Node* frontBestNode = start;
+	Node* backBestNode = goal;
+
+	priority_queue<Node*, std::vector<Node*>, NodeCompare> frontierFront = priority_queue<Node*, vector<Node*>, NodeCompare>();
+	priority_queue<Node*, std::vector<Node*>, NodeCompare> frontierBack = priority_queue<Node*, vector<Node*>, NodeCompare>();
+
+	frontierFront.push(start);
+	frontierBack.push(goal);
+
+	clock_t start_clock = clock();
+
+	while(!frontierFront.empty() && !frontierBack.empty())
+	{
+		if (timeout > 0 && timeout < (clock() - start_clock) /(double) CLOCKS_PER_SEC)
+		{
+			cout << "Timeout " << timeout << endl;
+			return 1;
+		}
+
+		cout << "Expanding back" << endl;
+		bool pathFound = expandFrontier(frontierBack, knownStates, 2, verbose);
+		cout << "Done." << endl << "Expanding front" << endl;
+		pathFound |= expandFrontier(frontierFront, knownStates, 1, verbose);
+		cout << "Done." << endl;
+		if (pathFound)
+		{
+			Node* node1;
+			Node* node2;
+			while (!frontierFront.empty())
+			{
+				node1 = frontierFront.top();
+				frontierFront.pop();
+				if (knownStates[node1->state] == 3)
+					break;
+			}
+			while (!frontierBack.empty())
+			{
+				node2 = frontierBack.top();
+				frontierBack.pop();
+				if (knownStates[node2->state] == 3)
+					break;
+			}
+			string path1 = getPath(node1);
+			string path2 = getPath(node2);
+			reversePath(path2);
+			cout << path1 << path2 << endl;
+			if (!notime)
+				cout << (clock() - start_clock )/(double) CLOCKS_PER_SEC << endl;
+
+			return 0;
+		}
+
+	}
+
+	return 1;
+}
+
+int solveOneDirection(bool verbose, bool back, bool notime, int timeout)
+{
+	Point initialPlayer(0,0);
+
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = back ? new BackNode() : new Node();
 	
@@ -461,4 +546,63 @@ int main(int argc, const char **argv) {
 	}
 
 	return 0;
+}
+
+int main(int argc, const char **argv) {
+	bool verbose = false;
+	bool back = true;
+	bool notime = false;
+	bool bidirectional = false;
+
+	debug = 0;
+	int timeout = -1;
+	for (int i = 1; i < argc; ++i)
+	{
+		std::string param(argv[i]);
+		if (param == "verbose" || param == "v")
+		{
+			verbose = true;
+		}
+		else if (param == "debug" || param == "d")
+		{
+			if (i + 1 < argc)
+				debug = (int)*argv[++i] - '0';
+			else
+				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
+		}
+		else if (param == "back" || param == "b")
+		{
+			back = true;
+		}
+		else if (param == "-notime")
+		{
+			notime = true;
+		}
+		else if (param == "-timeout")
+		{
+			if (i + 1 < argc)
+				timeout = atoi(argv[++i]);
+			else
+				std::cerr << "Usage: '" << argv[i] << " <int>' " << std::endl;
+		}
+		else if (param == "-bidirectional" || param == "-bi")
+		{
+			bidirectional = true;
+		}
+		else
+		{
+			std::cerr << "Unknown parameter: '" << argv[i] << "'" << std::endl;
+			return -1;
+		}
+	}
+	if (bidirectional)
+		back = false;
+
+	if (debug > 0) cerr << "Stating debug level " << debug << endl;
+
+	if (!bidirectional)
+		return solveOneDirection(verbose, back, notime, timeout);
+	else
+		return solveBidirectional(verbose, notime, timeout);
+
 }

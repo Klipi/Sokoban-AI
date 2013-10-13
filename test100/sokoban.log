@@ -1,0 +1,303 @@
+Solving maps in ./test100/ using timeout 15 seconds
+
+Solving ./test100/test000.in:
+Map solved correctly in 0.0330741405487 seconds.
+
+Solving ./test100/test001.in:
+Map solved correctly in 3.334897995 seconds.
+
+Solving ./test100/test002.in:
+Map solved correctly in 0.304198980331 seconds.
+
+Solving ./test100/test003.in:
+Map solved correctly in 0.149660110474 seconds.
+
+Solving ./test100/test004.in:
+Map solved correctly in 4.39149713516 seconds.
+
+Solving ./test100/test005.in:
+Map solved correctly in 0.291610002518 seconds.
+
+Solving ./test100/test006.in:
+Map solved correctly in 8.14656305313 seconds.
+
+Solving ./test100/test007.in:
+Map solved correctly in 0.730408906937 seconds.
+
+Solving ./test100/test008.in:
+Map solved correctly in 3.65506911278 seconds.
+
+Solving ./test100/test009.in:
+Map solved correctly in 2.40485215187 seconds.
+
+Solving ./test100/test010.in:
+Solver timeout
+
+Solving ./test100/test011.in:
+Solver timeout
+
+Solving ./test100/test012.in:
+Map solved correctly in 0.020192861557 seconds.
+
+Solving ./test100/test013.in:
+Map solved correctly in 0.082799911499 seconds.
+
+Solving ./test100/test014.in:
+Solver timeout
+
+Solving ./test100/test015.in:
+Map solved incorrectly.
+
+Solving ./test100/test016.in:
+Map solved correctly in 0.458627939224 seconds.
+
+Solving ./test100/test017.in:
+Map solved correctly in 1.34770417213 seconds.
+
+Solving ./test100/test018.in:
+Map solved correctly in 1.51493215561 seconds.
+
+Solving ./test100/test019.in:
+Map solved correctly in 2.82144904137 seconds.
+
+Solving ./test100/test020.in:
+Map solved correctly in 2.13948607445 seconds.
+
+Solving ./test100/test021.in:
+Map solved correctly in 2.04396009445 seconds.
+
+Solving ./test100/test022.in:
+Map solved correctly in 1.58351588249 seconds.
+
+Solving ./test100/test023.in:
+Map solved correctly in 4.68648099899 seconds.
+
+Solving ./test100/test024.in:
+Map solved correctly in 3.52094507217 seconds.
+
+Solving ./test100/test025.in:
+Map solved correctly in 0.624672889709 seconds.
+
+Solving ./test100/test026.in:
+Solver timeout
+
+Solving ./test100/test027.in:
+Solver timeout
+
+Solving ./test100/test028.in:
+Map solved correctly in 0.271260023117 seconds.
+
+Solving ./test100/test029.in:
+Solver timeout
+
+Solving ./test100/test030.in:
+Map solved correctly in 4.18902206421 seconds.
+
+Solving ./test100/test031.in:
+Map solved correctly in 13.0574350357 seconds.
+
+Solving ./test100/test032.in:
+Map solved correctly in 0.688465833664 seconds.
+
+Solving ./test100/test033.in:
+Map solved correctly in 0.0776090621948 seconds.
+
+Solving ./test100/test034.in:
+Map solved correctly in 0.0648150444031 seconds.
+
+Solving ./test100/test035.in:
+Map solved correctly in 0.228319168091 seconds.
+
+Solving ./test100/test036.in:
+Map solved correctly in 0.446166038513 seconds.
+
+Solving ./test100/test037.in:
+Map solved correctly in 0.014585018158 seconds.
+
+Solving ./test100/test038.in:
+Map solved correctly in 0.567982912064 seconds.
+
+Solving ./test100/test039.in:
+Map solved correctly in 13.4764230251 seconds.
+
+Solving ./test100/test040.in:
+Solver timeout
+
+Solving ./test100/test041.in:
+Map solved correctly in 0.477327108383 seconds.
+
+Solving ./test100/test042.in:
+Map solved correctly in 0.0248789787292 seconds.
+
+Solving ./test100/test043.in:
+Map solved correctly in 0.0328850746155 seconds.
+
+Solving ./test100/test044.in:
+Map solved correctly in 2.5867228508 seconds.
+
+Solving ./test100/test045.in:
+Map solved correctly in 1.15009903908 seconds.
+
+Solving ./test100/test046.in:
+Map solved correctly in 1.59382295609 seconds.
+
+Solving ./test100/test047.in:
+Map solved correctly in 0.0763599872589 seconds.
+
+Solving ./test100/test048.in:
+Map solved correctly in 1.53741407394 seconds.
+
+Solving ./test100/test049.in:
+Map solved correctly in 0.154288053513 seconds.
+
+Solving ./test100/test050.in:
+Map solved correctly in 0.118776082993 seconds.
+
+Solving ./test100/test051.in:
+Map solved incorrectly.
+
+Solving ./test100/test052.in:
+Map solved correctly in 0.828575134277 seconds.
+
+Solving ./test100/test053.in:
+Map solved correctly in 0.709244012833 seconds.
+
+Solving ./test100/test054.in:
+Map solved correctly in 12.6100978851 seconds.
+
+Solving ./test100/test055.in:
+Solver timeout
+
+Solving ./test100/test056.in:
+Map solved correctly in 0.231188058853 seconds.
+
+Solving ./test100/test057.in:
+Solver timeout
+
+Solving ./test100/test058.in:
+Solver timeout
+
+Solving ./test100/test059.in:
+Solver timeout
+
+Solving ./test100/test060.in:
+Solver timeout
+
+Solving ./test100/test061.in:
+Map solved correctly in 0.085501909256 seconds.
+
+Solving ./test100/test062.in:
+Map solved correctly in 0.0132179260254 seconds.
+
+Solving ./test100/test063.in:
+Solver timeout
+
+Solving ./test100/test064.in:
+Map solved correctly in 1.48936605453 seconds.
+
+Solving ./test100/test065.in:
+Map solved correctly in 0.116075992584 seconds.
+
+Solving ./test100/test066.in:
+Map solved correctly in 4.11877608299 seconds.
+
+Solving ./test100/test067.in:
+Map solved correctly in 0.77471613884 seconds.
+
+Solving ./test100/test068.in:
+Solver timeout
+
+Solving ./test100/test069.in:
+Solver timeout
+
+Solving ./test100/test070.in:
+Solver timeout
+
+Solving ./test100/test071.in:
+Solver timeout
+
+Solving ./test100/test072.in:
+Solver timeout
+
+Solving ./test100/test073.in:
+Map solved correctly in 0.0129368305206 seconds.
+
+Solving ./test100/test074.in:
+Solver timeout
+
+Solving ./test100/test075.in:
+Map solved correctly in 0.483937978745 seconds.
+
+Solving ./test100/test076.in:
+Map solved correctly in 8.58803319931 seconds.
+
+Solving ./test100/test077.in:
+Map solved incorrectly.
+
+Solving ./test100/test078.in:
+Map solved correctly in 0.0855901241302 seconds.
+
+Solving ./test100/test079.in:
+Solver timeout
+
+Solving ./test100/test080.in:
+Map solved correctly in 2.09695696831 seconds.
+
+Solving ./test100/test081.in:
+Map solved correctly in 0.266888141632 seconds.
+
+Solving ./test100/test082.in:
+Map solved correctly in 6.89477086067 seconds.
+
+Solving ./test100/test083.in:
+Map solved correctly in 0.0189039707184 seconds.
+
+Solving ./test100/test084.in:
+Solver timeout
+
+Solving ./test100/test085.in:
+Map solved correctly in 0.247279167175 seconds.
+
+Solving ./test100/test086.in:
+Solver timeout
+
+Solving ./test100/test087.in:
+Solver timeout
+
+Solving ./test100/test088.in:
+Map solved correctly in 4.26363801956 seconds.
+
+Solving ./test100/test089.in:
+Map solved correctly in 0.0161800384521 seconds.
+
+Solving ./test100/test090.in:
+Map solved incorrectly.
+
+Solving ./test100/test091.in:
+Map solved incorrectly.
+
+Solving ./test100/test092.in:
+Solver timeout
+
+Solving ./test100/test093.in:
+Solver timeout
+
+Solving ./test100/test094.in:
+Map solved correctly in 0.150546789169 seconds.
+
+Solving ./test100/test095.in:
+Solver timeout
+
+Solving ./test100/test096.in:
+Solver timeout
+
+Solving ./test100/test097.in:
+Map solved correctly in 0.583751916885 seconds.
+
+Solving ./test100/test098.in:
+Map solved correctly in 0.78749704361 seconds.
+
+Solving ./test100/test099.in:
+Map solved correctly in 0.0311398506165 seconds.
+
+68 correct, 27 timeouts, 5 wrong answers

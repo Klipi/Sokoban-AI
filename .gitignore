@@ -1,4 +1,5 @@
 # Ignore compiled program #
+sokoban
 *.exe
 /Debug
 

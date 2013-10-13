@@ -30,9 +30,9 @@ class MovePlayerToBoxTest: public GoalTest
 class MainGoalTest: public GoalTest
 {
 	bool back;
-	Point initialPlayerPosition;
+	const Point &initialPlayerPosition;
 public:
-	MainGoalTest(bool direction, Point playerPos):back(direction),initialPlayerPosition(playerPos){};
+	MainGoalTest(bool direction, const Point &playerPos):back(direction),initialPlayerPosition(playerPos){};
 	~MainGoalTest(){};
 
 	bool isGoal(std::vector<Point> &goal, State &state)

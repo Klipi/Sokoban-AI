@@ -396,7 +396,7 @@ bool BackNode::isFreePoint(const Point &place){
 	return (!hasWallIn(place) && !hasBoxIn(place));
 }
 
-vector<Node*> BackNode::getNextSteps(const vector<string> &map)
+vector<Node*> BackNode::getNextSteps()
 {
 	unordered_map<int, char> directions;
 	directions[0] = 'L';
@@ -411,10 +411,11 @@ vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 	{
 		if(isFreePoint(pos[i]))
 		{
-			State nS = State(pos[i],state.boxes);
-			if(this->parent == NULL || !(this->parent->state == nS)){
+			if(this->parent == NULL || this->parent->state.player != pos[i])
+			{
+				State nS = State(pos[i],state.boxes);
 			    ret.push_back(new BackNode(nS,directions[i],this));
-             }
+			}
 			int oposite = (i%2==0)?i+1:i-1;
 			if(hasBoxIn(pos[oposite]))
 			{
@@ -436,7 +437,7 @@ bool NoBoxMoveNode::isFreePoint(const Point &place){
 	return (!hasWallIn(place) && !hasBoxIn(place));
 }
 
-vector<Node*> NoBoxMoveNode::getNextSteps(const vector<string> &map)
+vector<Node*> NoBoxMoveNode::getNextSteps()
 {
 	unordered_map<int, char> directions;
 	directions[0] = 'L';

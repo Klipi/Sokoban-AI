@@ -13,7 +13,7 @@ using namespace std;
 
 
 // Parse the board to save the current state, goal points, and a clear version of the board (no player or boxes)
-void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard, bool back, Point &initialPlayerPos) {
+void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &goal, std::vector<string> &clearBoard, bool back, Point &initialPlayerPos, std::vector<Point> &alt) {
 	// Parse the board and save the current state into currentstate and all possible goal states in the vector
 	// Filip
 	bool placed = false;
@@ -105,27 +105,72 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 	}
 	if(!placed)
 	{
-		for(int j=0;j<root->state.boxes.size();++j)
+		std::vector<Point>pl;
+		pl.push_back(initialPlayerPos);
+		std::vector<Point>pot;
+		for(unsigned int j=0;j<root->state.boxes.size();++j)
 		{
 			vector<Point> pos = root->state.boxes[j].getNeighbours();
-			for(int i=0;i<pos.size();++i)
+			for(unsigned int i=0;i<pos.size();++i)
 			{
 				if(root->isFreePoint(pos[i]))
 				{
-					State start(pos[i],root->state.boxes);
-					ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), goal, new NoBoxMoveNode(start,' ',0));
-					std::string path = findPathToGoals.findSolution();
-					if(path!="")
+					if(!placed)
 					{
-						root->state.player = pos[i];
-						placed=true;
-						break;
+						State start(pos[i],root->state.boxes);
+						ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), goal, new NoBoxMoveNode(start,' ',0));
+						std::string path = findPathToGoals.findSolution();
+						if(path!="")
+						{
+							root->state.player = pos[i];
+							alt.push_back(pos[i]);
+							placed=true;
+						}
+						else
+							pot.push_back(pos[i]);
 					}
+					else
+						pot.push_back(pos[i]);
 				}
 			}
-			if(placed)
-				break;
 		}
+
+		for(unsigned i=0;i<pot.size();i++)
+		{
+			State start(pot[i],root->state.boxes);
+			ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), alt, new NoBoxMoveNode(start,' ',0));
+			std::string path = findPathToGoals.findSolution();
+			if(path=="")
+			{
+				alt.push_back(pot[i]);
+			}
+		}
+		alt.erase(alt.begin());
+//
+//
+//		while(!pot.empty())
+//		{
+//			std::vector<Point> tmp;
+//			Point &c=pot.back();
+//			pot.pop_back();
+//			while(!pot.empty())
+//			{
+//				std::vector<Point> p;
+//				Point &t =pot.back();
+//				pot.pop_back();
+//				p.push_back(t);
+//				State start(c,root->state.boxes);
+//				ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), p, new NoBoxMoveNode(start,' ',0));
+//				std::string path = findPathToGoals.findSolution();
+//				if(path=="")
+//				{
+//					tmp.push_back(t);
+//				}
+//
+//			}
+//			alt.push_back(c);
+//			pot=tmp;
+//		}
 	}
     
     if(!back)
@@ -391,7 +436,9 @@ int main(int argc, const char **argv) {
 	for (std::string line; std::getline(std::cin, line);)
 		board.push_back(line);
 
-	parseBoard(board, start, goals, clearBoard,back,initialPlayer);
+	std::vector<Point> alter;
+	parseBoard(board, start, goals, clearBoard,back,initialPlayer,alter);
+	State init=start->state;
 	sort(goals.begin(), goals.end());
 	addToHashMap(knownStates, start, 0);
 	int best = heuristic(start->state);
@@ -404,7 +451,8 @@ int main(int argc, const char **argv) {
 	clock_t start_clock = clock();
     //clock_t t = start_clock;
 	//int counter = 0;
-
+	bool alt=true;
+while(alt){
 	while(!frontier.empty())
 	{
 		if (timeout > 0 && timeout < (clock() - start_clock)/ (double) CLOCKS_PER_SEC)
@@ -435,7 +483,7 @@ int main(int argc, const char **argv) {
 		if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
 		//knownStates[current->state] = 1;
 		if (debug > 1) cerr << "Finding next nodes." << endl;
-		std::vector<Node*> children = current->getNextSteps(clearBoard);
+		std::vector<Node*> children = current->getNextSteps();
 		if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
 
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -459,6 +507,17 @@ int main(int argc, const char **argv) {
 			}
 		}
 	}
+	Node* start = back ? new BackNode() : new Node();
+	if(alter.empty())
+	{
+		break;
+	}
+	init.player=alter.back();
+	alter.pop_back();
+	start->state=init;
+	addToHashMap(knownStates, start, 0);
+	frontier.push(start);
 
+}
 	return 0;
 }

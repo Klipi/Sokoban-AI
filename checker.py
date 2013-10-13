@@ -97,7 +97,7 @@ def checkMap(file, logfile):
 
 	return ret
 def main(args):
-
+	# Check all maps in folder
 	folder = args[1]
 	log = open(folder + "/sokoban.log", 'w')
 	log.write("Solving maps in " + folder + " using timeout " + str(timeout) + " seconds\n\n")

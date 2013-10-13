@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXGroup section */
-		472BCA22180AEA7000266B0B = {
+		472BCA2D180AEF8300266B0B = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -16,10 +16,10 @@
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
-		472BCA27180AEA7000266B0B /* Sokoban */ = {
+		472BCA32180AEF8300266B0B /* Sokoban */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "$(ACTION)";
-			buildConfigurationList = 472BCA2A180AEA7000266B0B /* Build configuration list for PBXLegacyTarget "Sokoban" */;
+			buildConfigurationList = 472BCA35180AEF8300266B0B /* Build configuration list for PBXLegacyTarget "Sokoban" */;
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
@@ -32,30 +32,30 @@
 /* End PBXLegacyTarget section */
 
 /* Begin PBXProject section */
-		472BCA23180AEA7000266B0B /* Project object */ = {
+		472BCA2E180AEF8300266B0B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Olli Niskanen";
 			};
-			buildConfigurationList = 472BCA26180AEA7000266B0B /* Build configuration list for PBXProject "Sokoban" */;
+			buildConfigurationList = 472BCA31180AEF8300266B0B /* Build configuration list for PBXProject "Sokoban" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 472BCA22180AEA7000266B0B;
+			mainGroup = 472BCA2D180AEF8300266B0B;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				472BCA27180AEA7000266B0B /* Sokoban */,
+				472BCA32180AEF8300266B0B /* Sokoban */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin XCBuildConfiguration section */
-		472BCA28180AEA7000266B0B /* Debug */ = {
+		472BCA33180AEF8300266B0B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -92,7 +92,7 @@
 			};
 			name = Debug;
 		};
-		472BCA29180AEA7000266B0B /* Release */ = {
+		472BCA34180AEF8300266B0B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -123,7 +123,7 @@
 			};
 			name = Release;
 		};
-		472BCA2B180AEA7000266B0B /* Debug */ = {
+		472BCA36180AEF8300266B0B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEBUGGING_SYMBOLS = YES;
@@ -135,7 +135,7 @@
 			};
 			name = Debug;
 		};
-		472BCA2C180AEA7000266B0B /* Release */ = {
+		472BCA37180AEF8300266B0B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				OTHER_CFLAGS = "";
@@ -147,24 +147,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		472BCA26180AEA7000266B0B /* Build configuration list for PBXProject "Sokoban" */ = {
+		472BCA31180AEF8300266B0B /* Build configuration list for PBXProject "Sokoban" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				472BCA28180AEA7000266B0B /* Debug */,
-				472BCA29180AEA7000266B0B /* Release */,
+				472BCA33180AEF8300266B0B /* Debug */,
+				472BCA34180AEF8300266B0B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		472BCA2A180AEA7000266B0B /* Build configuration list for PBXLegacyTarget "Sokoban" */ = {
+		472BCA35180AEF8300266B0B /* Build configuration list for PBXLegacyTarget "Sokoban" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				472BCA2B180AEA7000266B0B /* Debug */,
-				472BCA2C180AEA7000266B0B /* Release */,
+				472BCA36180AEF8300266B0B /* Debug */,
+				472BCA37180AEF8300266B0B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 472BCA23180AEA7000266B0B /* Project object */;
+	rootObject = 472BCA2E180AEF8300266B0B /* Project object */;
 }

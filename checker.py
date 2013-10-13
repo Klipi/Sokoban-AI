@@ -22,7 +22,7 @@ def checkMap(file, logfile):
 	if "Timeout" in path:
 		print "Solver timeout"
 		logfile.write("Solver timeout\n\n")
-		return False
+		return 1
 
 	solveTime = str(time.time() - t0)
 	print "Map took " + solveTime + " seconds to solve."
@@ -83,12 +83,12 @@ def checkMap(file, logfile):
 			for line in listmap:
 				print string.join(line)
 
-	ret = True
+	ret = 0
 	for line in listmap:
 		print string.join(line)
 		if '$' in line:
-			ret = False
-	if ret:
+			ret = 2
+	if ret == 0:
 		print "Map solved correctly"
 		logfile.write("Map solved correctly in " + solveTime + " seconds.\n\n")
 	else:
@@ -100,12 +100,16 @@ def main(args):
 
 	folder = args[1]
 	log = open(folder + "/sokoban.log", 'w')
+	log.write("Solving maps in " + folder + " using timeout " + str(timeout) + " seconds\n\n")
+	counts = [0, 0, 0]
 	for f in listdir(folder):
 		if ".in" in f:
 			print f
-			checkMap(folder + f, log)
+			ret = checkMap(folder + f, log)
+			counts[ret] += 1
 
-	checkMap(args[1])
+	log.write(str(counts[0]) + " correct, " + str(counts[1]) + " timeouts, " + str(counts[2]) + " wrong answers")
+	log.close()
 
 if __name__=='__main__':
 	sys.exit(main(sys.argv))

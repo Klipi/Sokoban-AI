@@ -5,7 +5,8 @@
 #include <sstream>
 #include <iostream>
 #include <string>
-//#include <tr1/functional>
+// #include <tr1/functional>
+
 #include "point.hpp"
 
 struct State {
@@ -49,18 +50,18 @@ struct StateHash {
 struct StateEqual {
     bool operator()(const State& cFirst, const State& cSecond) const
     {
-        State first (cFirst);
-        State second (cSecond);
-        sort(first.boxes.begin(), first.boxes.end());
-        sort(second.boxes.begin(), second.boxes.end());
+//        State first (cFirst);
+//        State second (cSecond);
+//        sort(first.boxes.begin(), first.boxes.end());
+//        sort(second.boxes.begin(), second.boxes.end());
         // std::cerr << "player (" << (int)first.player.x << "," << (int)first.player.y << ") == (" << (int)second.player.x << "," << (int)second.player.y << ") " << std::endl;;
-        if (first.player != second.player)
+        if (cFirst.player != cSecond.player)
             return false;
 
-        for (size_t i = 0; i != first.boxes.size(); i++)
+        for (size_t i = 0; i != cFirst.boxes.size(); i++)
         {
             // std::cerr << "box (" << (int)first.boxes[i].x << "," << (int)first.boxes[i].y << ") == (" << (int)second.boxes[i].x << "," << (int)second.boxes[i].y << ") ";
-            if (first.boxes[i] != second.boxes[i])
+            if (cFirst.boxes[i] != cSecond.boxes[i])
             {
                 // std::cerr << "Mismatch" << std::endl;
                 return false;

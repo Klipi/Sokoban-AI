@@ -379,7 +379,7 @@ bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier,
 	if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
 	//knownStates[current->state] = 1;
 	if (debug > 1) cerr << "Finding next nodes." << endl;
-	std::vector<Node*> children = current->getNextSteps(clearBoard);
+	std::vector<Node*> children = current->getNextSteps();
 	if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
 
 	for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -388,7 +388,7 @@ bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier,
 		if (debug > 5) showBoard(clearBoard, (*i)->state);
 
 		int newHashMapValue = 0;
-		if (addToHashMap(knownStates, (*i), hashMapID, newHashMapValue, true))
+		if (addToHashMap(knownStates, (*i), hashMapID, newHashMapValue, false))
 		{
 			//std::cerr << "New node found, printing..." << std::endl;
 			frontier.push(*i);
@@ -397,7 +397,7 @@ bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier,
 		else if (newHashMapValue != hashMapID)
 		{
 
-			// cerr << "Goal Found, value " << newHashMapValue << endl;
+			if (verbose) cerr << "Goal Found, value " << newHashMapValue << endl;
 			frontier.push(*i);
 			return true;
 		}
@@ -448,7 +448,7 @@ int solveBidirectional(bool verbose, bool notime, int timeout)
 
 	clock_t start_clock = clock();
 
-	while(!frontierFront.empty() && !frontierBack.empty())
+	while(!frontierFront.empty() || !frontierBack.empty())
 	{
 		if (timeout > 0 && timeout < (clock() - start_clock) /(double) CLOCKS_PER_SEC)
 		{
@@ -470,7 +470,7 @@ int solveBidirectional(bool verbose, bool notime, int timeout)
 				node1 = frontierFront.top();
 				// cerr << "Node 1 candidate: " << node1->state.player.toStr() << endl;
 				frontierFront.pop();
-				if (knownStates[findLowestPlayerPosition(node1)->state] == 3)
+				if (knownStates[(node1)->state] == 3)
 					break;
 			}
 			while (!frontierBack.empty())
@@ -479,7 +479,7 @@ int solveBidirectional(bool verbose, bool notime, int timeout)
 				// cerr << "Node 2 candidate: " << node2->state.player.toStr() << endl;
 
 				frontierBack.pop();
-				if (knownStates[findLowestPlayerPosition(node2)->state] == 3)
+				if (knownStates[(node2)->state] == 3)
 					break;
 			}
 			string path1 = getPath(node1);
@@ -569,7 +569,7 @@ int solveOneDirection(bool verbose, bool back, bool notime, int timeout)
 		if (debug > 5) cerr << "Frontier has " << frontier.size() << " nodes." << endl;
 		//knownStates[current->state] = 1;
 		if (debug > 1) cerr << "Finding next nodes." << endl;
-		std::vector<Node*> children = current->getNextSteps(clearBoard);
+		std::vector<Node*> children = current->getNextSteps();
 		if (debug > 1) cerr << "Search over. Children found:  " << children.size() << endl;
 
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
@@ -660,11 +660,11 @@ int main(int argc, const char **argv) {
 		return solveOneDirection(verbose, back, notime, timeout);
 	else
 	{
-		int ret = solveBidirectional(verbose, notime, timeout);
-		if (ret > 0)
-			cout << "Solution not found" << endl;
+		/*int ret = */solveBidirectional(verbose, notime, timeout);
+		// if (ret > 0)
+		// 	cout << "Solution not found" << endl;
 
-		return ret;
+		return 0;
 	}
 
 }

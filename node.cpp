@@ -136,6 +136,11 @@ bool Node::isFreePoint(const Point &place){
 	return !(hasBoxIn(place) || hasWallIn(place) || clearBoard[place.y][place.x] == '?');
 }
 
+bool Node::isWalkable(const Point &place)
+{
+	return (!hasBoxIn(place) && !hasWallIn(place));
+}
+
 vector<Point> Node::getAdjacentBoxGroup(Point box)
 {
 	if (debug > 8) cerr << "Finding unified group of boxes next to " << (int)box.x << "," << (int)box.y << endl;
@@ -281,29 +286,36 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 }
 
 // Given a node, returns the next nodes to be added to the search queue.
-vector<Node*> Node::getNextSteps(const vector<string> &map) {
-	//cerr << "No. of boxes: " << current->state.boxes.size() << endl;
-	// Aggregate "interesting" places for the pathfinding algorithm
-	vector<Point> nextToBox;
-	vector<Node*> foundPaths;
-	for (size_t i = 0; i < state.boxes.size(); i++)
+vector<Node*> Node::getNextSteps() {
+	vector<Node*> children;
+
+	unordered_map<int, char> directions;
+	directions[0] = 'L';
+	directions[1] = 'R';
+	directions[2] = 'U';
+	directions[3] = 'D';
+
+	vector<Point> neighbours = state.player.getNeighbours();
+
+	for (int i = 0; i < directions.size(); i++)
 	{
-		Point box = state.boxes[i];
-		vector<Point> newPoints = getMovableSides(box, map);
+		State newState = State(neighbours[i], state.boxes);
+		if (isWalkable(neighbours[i]))
+			children.push_back(new Node(newState, directions[i], this));
 
-		//if (newPoints.size() == 0 && find(goals.begin(), goals.end(), box) == goals.end() && isBoxInfeasible(box, map, current))
-		//{
-			//cerr << "Stuck. Box #" << i << ": " << (int)box.x << ", " << (int)box.y << endl;
-		//	return foundPaths;
-		//}
-		nextToBox.insert(nextToBox.end(), newPoints.begin(), newPoints.end());
+		if (hasBoxIn(neighbours[i]))
+		{
+			Point behindBox = neighbours[i].getNeighbours()[i];
+			if (isFreePoint(behindBox))
+			{
+				replace(newState.boxes.begin(), newState.boxes.end(), neighbours[i], behindBox);
+				sort(newState.boxes.begin(), newState.boxes.end());
+				children.push_back(new Node(newState, directions[i], this));
+			}
+		}
 	}
-	if (debug > 2) cerr << "Found " << nextToBox.size() << " interesting points. Finding paths." << endl;
 
-	foundPaths = findPaths(nextToBox, map);
-	if (debug > 2) cerr << "Found " << foundPaths.size() << " paths. Start pushing." << endl;
-
-	return pushBoxes(foundPaths);
+	return children;
 }
 
 // Returns the coordinates from which the given box can be pushed.
@@ -396,8 +408,9 @@ bool BackNode::isFreePoint(const Point &place){
 	return (!hasWallIn(place) && !hasBoxIn(place));
 }
 
-vector<Node*> BackNode::getNextSteps(const vector<string> &map)
+vector<Node*> BackNode::getNextSteps()
 {
+	// cerr << "Backnode, getNextSteps" << endl;
 	unordered_map<int, char> directions;
 	directions[0] = 'L';
 	directions[1] = 'R';
@@ -405,56 +418,42 @@ vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 	directions[3] = 'D';
 
 	vector<Node*> ret;
-
-	unordered_map<State, int, StateHash, StateEqual> knownStates;
-	knownStates.insert({state, 1});
-	priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
-	frontier.push(this);
-
-	while(!frontier.empty())
+	vector<Point> pos = state.player.getNeighbours();
+	int best = 0;
+	for( unsigned int i =0;i<pos.size();++i)
 	{
-		Node* currentNode = frontier.top();
-		frontier.pop();
-
-		knownStates[currentNode->state] = 1;
-		vector<Point> pos = currentNode->state.player.getNeighbours();
-		// int best = 0;
-		for( unsigned int i =0;i<pos.size();++i)
+		if(isFreePoint(pos[i]))
 		{
-			if(isFreePoint(pos[i]))
+			int oposite = (i%2==0)?i+1:i-1;
+			// cerr << "Has box in " << pos[oposite].toStr() << "? " << hasBoxIn(pos[oposite]) << endl;
+			if(hasBoxIn(pos[oposite]))
+			{
+				// cerr << "Pulling box" << endl;
+				State anS = State(pos[i],state.boxes);
+				std::replace(anS.boxes.begin(),anS.boxes.end(),pos[oposite],state.player);
+				std::sort(anS.boxes.begin(),anS.boxes.end());
+				best = ret.size();
+				ret.push_back(new BackNode(anS,directions[i],this));
+				// continue;
+			}
+			if(this->parent == NULL || this->parent->state.player != pos[i])
 			{
 				State nS = State(pos[i],state.boxes);
-				if(knownStates.find(nS) == knownStates.end())
-				{
-				    frontier.push(new BackNode(nS,directions[i],currentNode));
-				    knownStates[nS] = 1;
-	            }
-				int opposite = (i%2==0)?i+1:i-1;
-				if(hasBoxIn(pos[opposite]))
-				{
-					State anS = State(pos[i],state.boxes);
-					std::replace(anS.boxes.begin(),anS.boxes.end(),pos[opposite],currentNode->state.player);
-					std::sort(anS.boxes.begin(),anS.boxes.end());
-					// best = ret.size();
-					ret.push_back(new BackNode(anS,directions[i],currentNode));
-				}
+			    ret.push_back(new BackNode(nS,directions[i],this));
 			}
 		}
 	}
-
-	return ret;
-
 //	std::sort(ret.begin(),ret.end(), NodeCompare());
-	// if(best>0)
-	// 	std::swap( ret[best], ret[0] );
-	// return ret;
+	if(best>0)
+		std::swap( ret[best], ret[0] );
+	return ret;
 }
 
 bool NoBoxMoveNode::isFreePoint(const Point &place){
 	return (!hasWallIn(place) && !hasBoxIn(place));
 }
 
-vector<Node*> NoBoxMoveNode::getNextSteps(const vector<string> &map)
+vector<Node*> NoBoxMoveNode::getNextSteps()
 {
 	unordered_map<int, char> directions;
 	directions[0] = 'L';

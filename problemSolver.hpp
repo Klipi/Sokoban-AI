@@ -46,7 +46,7 @@ public:
 		{
 			Node* current = frontier.top();
 			frontier.pop();
-			std::vector<Node*> children = current->getNextSteps(clearBoard);
+			std::vector<Node*> children = current->getNextSteps();
 
 			for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 			{

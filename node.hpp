@@ -17,6 +17,7 @@ class Node {
 		bool hasBoxIn(const Point&);
 		bool hasWallIn(const Point&);
 		bool hasGoalIn(const Point&);
+		bool isWalkable(const Point&);
 		virtual bool isFreePoint(const Point&);
 		Node* getChild(char, bool);
 		//bool identifyDeadBox(Node*, Point);
@@ -32,7 +33,7 @@ class Node {
 		};
 		virtual ~Node(){};
 
-		virtual std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
+		virtual std::vector<Node*> getNextSteps();
 		std::vector<Point> getMovableSides(Point box, std::vector<std::string> map);
 		std::vector<Node*> findPaths(std::vector<Point> goals, std::vector<std::string> map);
 		bool isSearchTarget(std::vector<Point> &goals);
@@ -54,7 +55,7 @@ public:
 	BackNode(State s, char d, Node* p):Node(s, d, p){};
 	virtual ~BackNode(){};
 	bool isFreePoint(const Point&);
-	std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
+	std::vector<Node*> getNextSteps();
 };
 
 class NoBoxMoveNode: public Node
@@ -64,7 +65,7 @@ public:
 	NoBoxMoveNode(State s, char d, Node* p):Node(s, d, p){};
 	virtual ~NoBoxMoveNode(){};
 	bool isFreePoint(const Point&);
-	std::vector<Node*> getNextSteps(const std::vector<std::string> &map);
+	std::vector<Node*> getNextSteps();
 
 };
 #endif

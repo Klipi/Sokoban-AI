@@ -64,7 +64,11 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 		if((x=map[i].find('@')) < std::string::npos)
 		{
 			if(!back)
+			{
+				//cout << "x: " << x << ", y: " << int(i) << endl;
 				root->state.player = Point(x,i);
+				placed = true;
+			}
 			else
 			{
 				initialPlayerPos.x=x;
@@ -100,6 +104,7 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 				goal.push_back(Point(x,i));
 				map[i][x] = '.';
 				clearBoard[i][x] = '.';
+				placed = true;
 			}
 		}
 	}
@@ -293,21 +298,39 @@ Node* findLowestPlayerPosition(Node* current){
 	return lowest;
 }
 
-// Returns true if a new element was added
-bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates, Node* node, int value){
+// Returns true if a new value was added. This is the overloaded version, which returns the new value.
+bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates, Node* node, int value, int &newValue, bool combine = false){
+	Node* newNode;
+	if (combine)
+		newNode = findLowestPlayerPosition(node);
+	else
+		newNode = node;
 
-	if (knownStates.find(node->state) == knownStates.end())
+	if (knownStates.find(newNode->state) == knownStates.end())
 	{
-		knownStates.insert({node->state, value});
+		knownStates.insert({newNode->state, value});
+		newValue = value;
 		return true;
 	}
 	else
 	{
-		if (knownStates[node->state] != value)
-			knownStates[node->state] += value;
+		newValue = knownStates[newNode->state];
+		if (newValue != value)
+		{
+			//cerr << "Old value: " << newValue << ", value to be added " << value << endl;
+			knownStates[newNode->state] += value;
+			newValue += value;
+		}
+		
 		return false;
 	}
 	
+}
+
+// Returns true if a new value was added
+bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates, Node* node, int value){
+	int dummy = 0;
+	return addToHashMap(knownStates, node, value, dummy, false);
 }
 
 std::string reversePath(std::string& path)
@@ -337,7 +360,7 @@ std::string reversePath(std::string& path)
 }
 
 // Returns true if goal expansion finds an ordinary node or vice versa
-bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier, unordered_map<State, int, StateHash, StateEqual> &knownStates, int hashMapID, bool verbose)
+bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier, unordered_map<State, int, StateHash, StateEqual> &knownStates, int hashMapID, bool verbose, bool back)
 {
 	Node* current = frontier.top();
 	frontier.pop();
@@ -361,11 +384,20 @@ bool expandFrontier(priority_queue<Node*, vector<Node*>, NodeCompare> &frontier,
 
 	for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 	{
-		if (addToHashMap(knownStates, (*i), hashMapID))
+		if (debug > 5) cerr << "Found child state:" << endl;
+		if (debug > 5) showBoard(clearBoard, (*i)->state);
+
+		int newHashMapValue = 0;
+		if (addToHashMap(knownStates, (*i), hashMapID, newHashMapValue, true))
 		{
 			//std::cerr << "New node found, printing..." << std::endl;
-			if (knownStates[(*i)->state] != hashMapID)
-				cout << "Goal Found" << endl;
+			frontier.push(*i);
+			
+		}
+		else if (newHashMapValue != hashMapID)
+		{
+
+			// cerr << "Goal Found, value " << newHashMapValue << endl;
 			frontier.push(*i);
 			return true;
 		}
@@ -394,8 +426,10 @@ int solveBidirectional(bool verbose, bool notime, int timeout)
 	vector<string> backBoard (board);
 	vector<string> clear2;
 	parseBoard(board, start, goals, clearBoard, false, initialPlayer);
-	parseBoard(backBoard, goal, initialBoxes, clear2, true, initialPlayer);
+	parseBoard(backBoard, goal, initialBoxes, clear2, true, initialPlayerBack);
+
 	sort(goals.begin(), goals.end());
+
 	sort(initialBoxes.begin(), initialBoxes.end());
 	addToHashMap(knownStates, start, 1);
 	addToHashMap(knownStates, goal, 2);
@@ -422,11 +456,11 @@ int solveBidirectional(bool verbose, bool notime, int timeout)
 			return 1;
 		}
 
-		cout << "Expanding back" << endl;
-		bool pathFound = expandFrontier(frontierBack, knownStates, 2, verbose);
-		cout << "Done." << endl << "Expanding front" << endl;
-		pathFound |= expandFrontier(frontierFront, knownStates, 1, verbose);
-		cout << "Done." << endl;
+		if (verbose) cerr << "Expanding back" << endl;
+		bool pathFound = expandFrontier(frontierBack, knownStates, 2, verbose, true);
+		if (verbose) cerr << "Done." << endl << "Expanding front" << endl;
+		pathFound |= expandFrontier(frontierFront, knownStates, 1, verbose, false);
+		if (verbose) cerr << "Done." << endl;
 		if (pathFound)
 		{
 			Node* node1;
@@ -434,21 +468,36 @@ int solveBidirectional(bool verbose, bool notime, int timeout)
 			while (!frontierFront.empty())
 			{
 				node1 = frontierFront.top();
+				// cerr << "Node 1 candidate: " << node1->state.player.toStr() << endl;
 				frontierFront.pop();
-				if (knownStates[node1->state] == 3)
+				if (knownStates[findLowestPlayerPosition(node1)->state] == 3)
 					break;
 			}
 			while (!frontierBack.empty())
 			{
 				node2 = frontierBack.top();
+				// cerr << "Node 2 candidate: " << node2->state.player.toStr() << endl;
+
 				frontierBack.pop();
-				if (knownStates[node2->state] == 3)
+				if (knownStates[findLowestPlayerPosition(node2)->state] == 3)
 					break;
 			}
 			string path1 = getPath(node1);
+			// cerr << "Path 1: " << path1 << endl;
 			string path2 = getPath(node2);
-			reversePath(path2);
-			cout << path1 << path2 << endl;
+			path2 = reversePath(path2);
+			// cerr << "Path 2: " << path2 << endl;
+
+			
+			vector<Point> goals;
+			goals.push_back(node2->state.player);
+			ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), goals, new NoBoxMoveNode(node1->state,' ',0));
+
+			string pathMiddle = findPathToGoals.findSolution();
+
+			// cerr << "Path from node 1 " << node1->state.player.toStr() << " to node 2 " << node2->state.player.toStr() << ": " << pathMiddle << endl;
+		
+			cout << path1 << pathMiddle << path2 << endl;
 			if (!notime)
 				cout << (clock() - start_clock )/(double) CLOCKS_PER_SEC << endl;
 
@@ -525,16 +574,23 @@ int solveOneDirection(bool verbose, bool back, bool notime, int timeout)
 
 		for(std::vector<Node*>::iterator i = children.begin();i!=children.end();++i)
 		{
-			if(maintGoalTest.isGoal(goals,(*i)->state))
+			if(maintGoalTest.isGoal(goals,(*i)->state) )
 			{
-				std::string answer = getPath(*i);
-				//showSolution(clearBoard,start,answer);
-				if(back)
-					answer = reversePath(answer);
-				std::cout << answer << std::endl;
-				if(!notime)
-					cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC << endl;
-				return 0;
+				vector<Point> goals;
+				goals.push_back(initialPlayer);
+				ProblemSolver findPathToGoals(new MovePlayerToBoxTest(), goals, new NoBoxMoveNode((*i)->state,' ',0));
+				string path = "";
+				if (!back || (initialPlayer == (*i)->state.player) || (path=findPathToGoals.findSolution()) != "" )
+					{
+						std::string answer = getPath(*i) + path;
+						//showSolution(clearBoard,start,answer);
+						if(back)
+							answer = reversePath(answer);
+						std::cout << answer << std::endl;
+						if(!notime)
+							cout << (clock()-start_clock)/(double) CLOCKS_PER_SEC << endl;
+						return 0;
+					}
 			}
 
 			if (addToHashMap(knownStates, (*i), 0))
@@ -603,6 +659,12 @@ int main(int argc, const char **argv) {
 	if (!bidirectional)
 		return solveOneDirection(verbose, back, notime, timeout);
 	else
-		return solveBidirectional(verbose, notime, timeout);
+	{
+		int ret = solveBidirectional(verbose, notime, timeout);
+		if (ret > 0)
+			cout << "Solution not found" << endl;
+
+		return ret;
+	}
 
 }

@@ -202,7 +202,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 		case 'U':
 			if (position.y <= 1)
 			{
-				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
+				// if (debug > 1) cerr << "Out of bounds U ?!?" << endl;
 				return 0;
 			}
 			position = position.up();
@@ -211,7 +211,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 		case 'R':
 			if (position.x >= clearBoard[position.y].size() - 2)
 			{
-				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
+				// if (debug > 1) cerr << "Out of bounds R ?!?" << endl;
 				return 0;
 			}
 			position = position.right();
@@ -220,7 +220,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 		case 'D':
 			if (position.y >= clearBoard.size() - 2)
 			{
-				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
+				// if (debug > 1) cerr << "Out of bounds D ?!?" << endl;
 				return 0;
 			}
 			position = position.down();
@@ -229,7 +229,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 		case 'L':
 			if (position.x <= 1)
 			{
-				if (debug > 1) cerr << "Out of bounds ?!?" << endl;
+				// if (debug > 1) cerr << "Out of bounds L ?!?" << endl;
 				return 0;
 			}
 			position = position.left();
@@ -405,31 +405,49 @@ vector<Node*> BackNode::getNextSteps(const vector<string> &map)
 	directions[3] = 'D';
 
 	vector<Node*> ret;
-	vector<Point> pos = state.player.getNeighbours();
-	int best = 0;
-	for( unsigned int i =0;i<pos.size();++i)
+
+	unordered_map<State, int, StateHash, StateEqual> knownStates;
+	knownStates.insert({state, 1});
+	priority_queue<Node*, vector<Node*>, NodeCompare> frontier = priority_queue<Node*, vector<Node*>, NodeCompare>();
+	frontier.push(this);
+
+	while(!frontier.empty())
 	{
-		if(isFreePoint(pos[i]))
+		Node* currentNode = frontier.top();
+		frontier.pop();
+
+		knownStates[currentNode->state] = 1;
+		vector<Point> pos = currentNode->state.player.getNeighbours();
+		// int best = 0;
+		for( unsigned int i =0;i<pos.size();++i)
 		{
-			State nS = State(pos[i],state.boxes);
-			if(this->parent == NULL || !(this->parent->state == nS)){
-			    ret.push_back(new BackNode(nS,directions[i],this));
-             }
-			int oposite = (i%2==0)?i+1:i-1;
-			if(hasBoxIn(pos[oposite]))
+			if(isFreePoint(pos[i]))
 			{
-				State anS = State(pos[i],state.boxes);
-				std::replace(anS.boxes.begin(),anS.boxes.end(),pos[oposite],state.player);
-				std::sort(anS.boxes.begin(),anS.boxes.end());
-				best = ret.size();
-				ret.push_back(new BackNode(anS,directions[i],this));
+				State nS = State(pos[i],state.boxes);
+				if(knownStates.find(nS) == knownStates.end())
+				{
+				    frontier.push(new BackNode(nS,directions[i],currentNode));
+				    knownStates[nS] = 1;
+	            }
+				int opposite = (i%2==0)?i+1:i-1;
+				if(hasBoxIn(pos[opposite]))
+				{
+					State anS = State(pos[i],state.boxes);
+					std::replace(anS.boxes.begin(),anS.boxes.end(),pos[opposite],currentNode->state.player);
+					std::sort(anS.boxes.begin(),anS.boxes.end());
+					// best = ret.size();
+					ret.push_back(new BackNode(anS,directions[i],currentNode));
+				}
 			}
 		}
 	}
-//	std::sort(ret.begin(),ret.end(), NodeCompare());
-	if(best>0)
-		std::swap( ret[best], ret[0] );
+
 	return ret;
+
+//	std::sort(ret.begin(),ret.end(), NodeCompare());
+	// if(best>0)
+	// 	std::swap( ret[best], ret[0] );
+	// return ret;
 }
 
 bool NoBoxMoveNode::isFreePoint(const Point &place){

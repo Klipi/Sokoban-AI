@@ -43,6 +43,7 @@ class Point {
         Point up();
         Point down();
         std::vector<Point> getNeighbours();
+        std::string toStr();
 };
 
 #endif

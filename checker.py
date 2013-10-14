@@ -17,7 +17,7 @@ def checkMap(file, logfile):
 	t0 = time.time()
 	t = 0
 
-	process = Popen(["./sokoban -timeout " + str(timeout) + " -notime < " + file], shell = True, stdout = PIPE)
+	process = Popen(["./sokoban b -timeout " + str(timeout) + " -notime < " + file], shell = True, stdout = PIPE)
 	path = process.stdout.read();
 	if "Timeout" in path:
 		print "Solver timeout"
@@ -97,6 +97,11 @@ def checkMap(file, logfile):
 
 	return ret
 def main(args):
+	if ".in" in args[1]:
+		log = open(args[1] + ".log", 'w')
+		print args[1]
+		checkMap(args[1], log)
+		return
 	# Check all maps in folder
 	folder = args[1]
 	log = open(folder + "/sokoban.log", 'w')

@@ -16,4 +16,6 @@ void showSolution(std::vector<std::string>, State, std::string);
 
 std::string getPath(Node* node);
 
+Node* findLowestPlayerPosition(Node*);
+
 #endif

@@ -45,13 +45,11 @@ public:
 				return false;
 			}
 		}
-		if(back)
-			return state.player==initialPlayerPosition;
+		// if(back)
+		// 	return state.player==initialPlayerPosition;
 		return true;
 	};
 
 };
-
-
 
 #endif /* GOALTEST_HPP_ */

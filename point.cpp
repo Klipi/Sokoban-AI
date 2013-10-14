@@ -1,4 +1,6 @@
 #include "point.hpp"
+#include "sstream"
+#include <string>
 
 using namespace std;
 
@@ -26,4 +28,11 @@ vector<Point> Point::getNeighbours(){
 	neighbours.push_back(this->up());
 	neighbours.push_back(this->down());
 	return neighbours;
+}
+
+string Point::toStr()
+{
+	stringstream ss;
+	ss << "(" << (int)x << "," << (int)y << ")";
+	return ss.str();
 }

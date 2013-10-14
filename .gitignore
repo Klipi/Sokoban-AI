@@ -2,5 +2,6 @@
 sokoban
 *.exe
 /Debug
+*.log
 
 *.stackdump

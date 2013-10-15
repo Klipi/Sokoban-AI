@@ -76,9 +76,9 @@ def checkMap(file, logfile):
 
 		listmap[playerY][playerX] = ' ' if listmap[playerY][playerX] == '@' else '.'
 		playerX = newX
-		playerY = newY				
+		playerY = newY
 		listmap[newY][newX] = '@' if listmap[newY][newX] == ' ' else '+'
-		
+
 		if verbose:
 			for line in listmap:
 				print string.join(line)

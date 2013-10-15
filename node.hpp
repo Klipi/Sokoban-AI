@@ -5,6 +5,9 @@
 #include "state.hpp"
 #include "point.hpp"
 
+int ** preCalcDistance(const Point& start);
+std::vector<int**> preCalcDistances(std::vector<Point> points);
+
 int heuristic(const State&);
 
 class Node {

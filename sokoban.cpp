@@ -172,11 +172,11 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
 //			pot=tmp;
 //		}
 	}
-    
+
     if(!back)
     {
     	// Find edgecells
-    
+
     	// Vertical
     	// There is never more than like 50 cells in the maps given
     	bool edge, LR, UD;
@@ -211,7 +211,7 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
     			}
     		}
     	}
-    	
+
     	// Horisontal and corners
     	for (size_t y = 1; y < clearBoard.size(); y++)
     	{
@@ -242,19 +242,19 @@ void parseBoard(std::vector<std::string> &map, Node* root, std::vector<Point> &g
     					combo = -1;
     				}
     			}
-    
+
     			// Corners
     			if (clearBoard[y][x] == ' ')
     			{
     				UD = clearBoard[y-1][x] == '#' || (y+1 < clearBoard.size() && clearBoard[y+1][x] == '#');
     				LR = clearBoard[y][x-1] == '#' || (x+1 < clearBoard[y].size() && clearBoard[y][x+1] == '#');
-    
+
     				if (UD && LR)
     				{
     					clearBoard[y][x] = '?';
     				}
     			}
-    
+
     		}
     	}
     }
@@ -351,7 +351,7 @@ bool addToHashMap(unordered_map<State, int, StateHash, StateEqual>& knownStates,
 		knownStates[node->state] = value;
 		return false;
 	}
-	
+
 }
 
 std::string reversePath(std::string& path)
@@ -426,10 +426,9 @@ int main(int argc, const char **argv) {
 	if (debug > 0) cerr << "Stating debug level " << debug << endl;
 	unordered_map<State, int, StateHash, StateEqual> knownStates;
 	Node* start = back ? new BackNode() : new Node();
-	
+
 
 	goals = std::vector<Point>();
-
 
 	// Read the board
 	std::vector<std::string> board;
@@ -439,19 +438,26 @@ int main(int argc, const char **argv) {
 	std::vector<Point> alter;
 	parseBoard(board, start, goals, clearBoard,back,initialPlayer,alter);
 	State init=start->state;
+
+	distances = preCalcDistances(goals);
+
 	sort(goals.begin(), goals.end());
 	addToHashMap(knownStates, start, 0);
+
 	int best = heuristic(start->state);
 	Node* bestNode = start;
+
 	MainGoalTest maintGoalTest = MainGoalTest(back,initialPlayer);
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCompare> frontier =std::priority_queue<Node*, std::vector<Node*>, NodeCompare>();
 	frontier.push(start);
-	
+
 	clock_t start_clock = clock();
-    //clock_t t = start_clock;
-	//int counter = 0;
+ 	// clock_t t = start_clock;
+	// int counter = 0;
 	bool alt=true;
+
+
 while(alt){
 	while(!frontier.empty())
 	{

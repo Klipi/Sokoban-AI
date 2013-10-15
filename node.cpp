@@ -44,29 +44,80 @@ int distance(const Point &p1, const Point &p2)
 	return abs(p1.x - p2.x) + abs(p1.y- p2.y);
 }
 
-// Smaller = closer to goal.
+// Calculates the least possible steps from every point on the map to point start
+int ** preCalcDistance(const Point& start) {
+	int ** steps;	// Pointer to pointer to a int
+
+	// Allocate space
+	steps = new int*[clearBoard.size()];
+	for (int i = 0; i < clearBoard.size(); i++) {
+		steps[i] = new int[clearBoard[i].size()];
+		for (int j = 0; j < clearBoard[i].size(); j++) {
+			steps[i][j] = -1;
+		}
+	}
+
+	std::queue<Point> pqueue = std::queue<Point>();
+
+	int numberOfSteps = 0;
+	Point point;
+
+	steps[start.y][start.x] = numberOfSteps;
+	pqueue.push(start);
+
+	while (!pqueue.empty()) {
+		point = pqueue.front();
+		pqueue.pop();
+
+		numberOfSteps = steps[point.y][point.x];
+
+		std::vector<Point> neighbours = point.getNeighbours();
+
+		for (std::vector<Point>::iterator i = neighbours.begin(); i != neighbours.end(); ++i) {
+			if (steps[i->y][i->x] == -1 && clearBoard[i->y][i->x] != '#') {
+				steps[i->y][i->x] = numberOfSteps+1;
+				pqueue.push(*i);
+			}
+		}
+	}
+
+	return steps;
+}
+
+std::vector<int**> preCalcDistances(std::vector<Point> points) {
+	std::vector<int**> dists;
+
+	for (std::vector<Point>::iterator i = points.begin(); i != points.end(); ++i) {
+		dists.push_back(preCalcDistance(*i));
+	}
+
+	return dists;
+}
+
 int heuristic(const State &state)
 {
 	int value = 0;
 
 	vector<Point> usedBoxes;
 
-	for (vector<Point>::iterator j = goals.begin(); j != goals.end(); ++j)
+	for (vector<int**>::iterator distance = distances.begin(); distance != distances.end(); ++distance)
 	{
 		int minSoFar = 1000;
 		Point bestSoFar;
 
 		for (std::vector<Point>::const_iterator i = state.boxes.begin(); i != state.boxes.end(); ++i)
 		{
-			int d = distance(*i, *j);
+			int d = (*distance)[i->y][i->x];
 			if (minSoFar >  d && find(usedBoxes.begin(), usedBoxes.end(), *i) == usedBoxes.end())
 			{
 				minSoFar = d;
 				bestSoFar = *i;
 			}
 		}
+
+		// Prefer the goals closest to the player
 		if(minSoFar>0)
-			value += 0.5*distance(*j,state.player);
+			value += 0.5*(*distance)[state.player.y][state.player.x];
 		value += minSoFar;
 		usedBoxes.push_back(bestSoFar);
 	}
@@ -236,7 +287,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 			position2 = position.left();
 			break;
 	}
-	
+
 	if(!hasWallIn(position) && !hasBoxIn(position)){
                             State newState (position,state.boxes);
                             return new Node(newState,dir,this);
@@ -245,7 +296,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
         State newState (position,state.boxes);
         return 0;
         }
- 
+
 	if (debug > 7) cerr << "Moving to " << (int)position.x << "," << (int)position.y << " to direction " << dir << endl;
 	if (debug > 7) cerr << "Box will move to " << (int)position2.x << "," << (int)position2.y << " to direction " << dir << endl;
 	// Stay in place and use 'X' to denote not moving
@@ -276,7 +327,7 @@ Node* Node::getChild(char dir, bool pushing_allowed = true){
 		if (debug > 7) cerr << "Deadlock found with box at " << (int)position2.x << "," << (int)position2.y << endl;
 		return 0;
 	}
-	
+
 	return child;
 }
 
